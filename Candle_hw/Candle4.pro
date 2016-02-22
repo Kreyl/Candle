@@ -1,25 +1,8 @@
-update=08/11/2013 11:55:00
+update=22.02.2016 21:17:21
 version=1
-last_client=pcbnew
+last_client=eeschema
 [general]
 version=1
-[eeschema]
-version=1
-LibDir=D:/libs/Kicad
-NetFmtName=
-RptD_X=0
-RptD_Y=100
-RptLab=1
-LabSize=60
-[eeschema/libraries]
-LibName1=Connectors_kl
-LibName2=pcb_details
-LibName3=RF ICs
-LibName4=st_kl
-LibName5=Tittar_kl
-LibName6=power
-LibName7=Antennas_kl
-LibName8=Power_kl
 [cvpcb]
 version=1
 NetIExt=net
@@ -52,3 +35,16 @@ LibName3=Connectors_kl
 LibName4=pcb_details
 LibName5=Tittar_kl
 LibName6=switches
+[eeschema]
+version=1
+LibDir=D:/Libs/Kicad
+[eeschema/libraries]
+LibName1=Connectors_kl
+LibName2=pcb_details
+LibName3=RF ICs
+LibName4=st_kl
+LibName5=Tittar_kl
+LibName6=power
+LibName7=Antennas_kl
+LibName8=Power_kl
+LibName9=Switches
