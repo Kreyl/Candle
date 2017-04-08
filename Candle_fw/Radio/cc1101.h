@@ -52,7 +52,10 @@ public:
     void SetPktSize(uint8_t ASize) { WriteRegister(CC_PKTLEN, ASize); IPktSz = ASize; }
     // State change
     void Transmit(void *Ptr);
-    uint8_t Receive(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi=nullptr);
+    uint8_t ReceiveSysTime(uint32_t Timeout_SysTime, void *Ptr, int8_t *PRssi=nullptr);
+    uint8_t Receive(uint32_t Timeout_ms, void *Ptr, int8_t *PRssi=nullptr) {
+        return ReceiveSysTime(MS2ST(Timeout_ms), Ptr, PRssi);
+    }
     uint8_t EnterIdle()    { return WriteStrobe(CC_SIDLE); }
     uint8_t EnterPwrDown() { return WriteStrobe(CC_SPWD);  }
     uint8_t Recalibrate() {

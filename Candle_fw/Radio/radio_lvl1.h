@@ -72,7 +72,7 @@ union rPkt_t {
 #endif
 
 #if 1 // =================== Channels, cycles, Rssi  ===========================
-#define CC_TX_PWR       CC_PwrPlus5dBm
+#define CC_TX_PWR       CC_Pwr0dBm
 
 #define RCHNL_SERVICE   0
 #define RCHNL_COMMON    1
@@ -83,15 +83,19 @@ union rPkt_t {
 
 #define RSSI_MIN        -75
 
-// Feel-Each-Other related
-#define CYCLE_CNT           4
-#define SLOT_CNT            30
-#define SLOT_DURATION_MS    5
-
 // Timings
-#define RX_T_MS                 180      // pkt duration at 10k is around 12 ms
+#define PKT_DURATION            4      // pkt duration at 100k
+#define TX_SLEEP_TIME
+
 #define RX_SLEEP_T_MS           810
 #define MIN_SLEEP_DURATION_MS   18
+
+
+// Feel-Each-Other related
+#define CYCLE_CNT           7
+#define SLOT_CNT            4
+#define SLOT_DURATION_MS    (PKT_DURATION * 2)
+
 #endif
 
 #if 1 // ============================= RX Table ================================
@@ -136,7 +140,7 @@ public:
         return false;
     }
 #else
-    void AddId(uint8_t ID) {
+    void AddIdI(uint8_t ID) {
         if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
         for(uint32_t i=0; i<Cnt; i++) {
             if(IdBuf[i] == ID) return;

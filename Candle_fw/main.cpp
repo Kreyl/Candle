@@ -28,8 +28,8 @@ LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
 
 // ==== Timers ====
 static TmrKL_t TmrEverySecond {MS2ST(1000), EVT_EVERY_SECOND, tktPeriodic};
-//static TmrKL_t TmrRxTableCheck {MS2ST(2007), EVT_RXCHECK, tktPeriodic};
-static int32_t TimeS;
+static TmrKL_t TmrRxTableCheck {MS2ST(2007), EVT_RXCHECK, tktPeriodic};
+//static int32_t TimeS;
 #endif
 
 int main(void) {
@@ -63,8 +63,8 @@ int main(void) {
 //    Adc.Init();
 
     // ==== Time and timers ====
-    TmrEverySecond.InitAndStart();
-//    TmrRxTableCheck.InitAndStart();
+//    TmrEverySecond.InitAndStart();
+    TmrRxTableCheck.InitAndStart();
 
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
@@ -79,9 +79,9 @@ __noreturn
 void App_t::ITask() {
     while(true) {
         __unused eventmask_t Evt = chEvtWaitAny(ALL_EVENTS);
-        if(Evt & EVT_EVERY_SECOND) {
-            TimeS++;
-        }
+//        if(Evt & EVT_EVERY_SECOND) {
+//            TimeS++;
+//        }
 
 #if BTN_ENABLED
         if(Evt & EVT_BUTTONS) {
@@ -96,19 +96,17 @@ void App_t::ITask() {
         }
 #endif
 
-        if(Evt & EVT_RX) {
-            int32_t TimeRx = Radio.PktRx.Time;
-            Uart.Printf("RX %u\r", TimeRx);
-        }
+//        if(Evt & EVT_RX) {
+////            int32_t TimeRx = Radio.PktRx.Time;
+//            Uart.Printf("RX\r");
+//        }
 
         if(Evt & EVT_RXCHECK) {
-//            if(ShowAliens == true) {
-//                if(Radio.RxTable.GetCount() != 0) {
-//                    Led.StartOrContinue(lsqTheyAreNear);
-//                    Radio.RxTable.Clear();
-//                }
-//                else Led.StartOrContinue(lsqTheyDissapeared);
-//            }
+            if(Radio.RxTable.GetCount() != 0) {
+                Led.StartOrContinue(lsqTheyAreNear);
+                Radio.RxTable.Clear();
+            }
+            else Led.StartOrContinue(lsqTheyDissapeared);
         }
 
 

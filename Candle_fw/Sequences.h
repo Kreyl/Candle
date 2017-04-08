@@ -191,10 +191,10 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #if 1 // ============================ LED RGB ==================================
 #define LOW_BRTNESS     4
 const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 180, clRed},
-        {csSetup, 180, clGreen},
-        {csSetup, 180, clBlue},
-        {csSetup, 180, clBlack},
+        {csSetup, 90, clRed},
+        {csSetup, 90, clGreen},
+        {csSetup, 90, clBlue},
+        {csSetup, 90, clBlack},
         {csEnd},
 };
 
@@ -211,6 +211,16 @@ const LedRGBChunk_t lsqFailure[] = {
         {csWait, 99},
         {csSetup, 0, clBlack},
         {csEnd}
+};
+
+const LedRGBChunk_t lsqTheyAreNear[] = {
+        {csSetup, 720, clBlue},
+        {csEnd},
+};
+
+const LedRGBChunk_t lsqTheyDissapeared[] = {
+        {csSetup, 720, clBlack},
+        {csEnd},
 };
 
 #endif
