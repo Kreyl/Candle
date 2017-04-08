@@ -10,21 +10,16 @@
 #include <inttypes.h>
 
 // ==== General ====
-#define BOARD_NAME          "Locket4_1"
-#define APP_NAME            "FirstDaysOfEmpire"
+#define BOARD_NAME          "Candle04"
+#define APP_NAME            "Candle_FeelEO"
 
 // ==== High-level peripery control ====
-#define PILL_ENABLED        TRUE
-#define BEEPER_ENABLED      FALSE
-#define BTN_ENABLED         TRUE
+#define BTN_ENABLED         FALSE
 
 #define SIMPLESENSORS_ENABLED   BTN_ENABLED
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
-
-// Freq of external crystal if any. Leave it here even if not used.
-#define CRYSTAL_FREQ_HZ     12000000
 
 #define SYS_TIM_CLK         (Clk.APB1FreqHz)
 #define I2C1_ENABLED        PILL_ENABLED
@@ -41,66 +36,17 @@
 
 // LED
 #define LED_EN_PIN      { GPIOB, 2, omPushPull }
-#define LED_R_PIN       { GPIOB, 1, TIM3, 4, invInverted, omOpenDrain, 255 }
+#define LED_R_PIN       { GPIOB, 5, TIM3, 2, invInverted, omOpenDrain, 255 }
 #define LED_G_PIN       { GPIOB, 0, TIM3, 3, invInverted, omOpenDrain, 255 }
-#define LED_B_PIN       { GPIOB, 5, TIM3, 2, invInverted, omOpenDrain, 255 }
+#define LED_B_PIN       { GPIOB, 1, TIM3, 4, invInverted, omOpenDrain, 255 }
 
 // Button
 #define BTN_PIN         { GPIOA, 0, pudPullDown }
 
-// Vibro
-#define VIBRO_TOP       99
-#define VIBRO_PIN       { GPIOB, 12, TIM10, 1, invNotInverted, omPushPull, VIBRO_TOP }
-
-// Beeper
-#define BEEPER_TOP      22
-#define BEEPER_PIN      { GPIOB, 15, TIM11, 1, invNotInverted, omPushPull, BEEPER_TOP }
-
-// DIP switch
-#define DIP_SW_CNT      6
-#define DIP_SW1         { GPIOA, 15, pudPullUp }
-#define DIP_SW2         { GPIOC, 13, pudPullUp }
-#define DIP_SW3         { GPIOC, 14, pudPullUp }
-#define DIP_SW4         { GPIOA, 12, pudPullUp }
-#define DIP_SW5         { GPIOA, 11, pudPullUp }
-#define DIP_SW6         { GPIOA, 8,  pudPullUp }
-
-// I2C
-#if I2C1_ENABLED
-#define I2C1_GPIO       GPIOB
-#define I2C1_SCL        6
-#define I2C1_SDA        7
-#define I2C1_AF         AF4
-#endif
-
-// Pill power
-#define PILL_PWR_PIN    { GPIOB, 3, omPushPull }
-
-// Radio
-#define CC_GPIO         GPIOA
-#define CC_GDO2         2
-#define CC_GDO0         3
-#define CC_SCK          5
-#define CC_MISO         6
-#define CC_MOSI         7
-#define CC_CS           4
-// Input pin (do not touch)
-#define CC_GDO0_IRQ     { CC_GPIO, CC_GDO0, pudNone }
+// Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
+#define CC_Setup        SPI1, GPIOA, 5,6,7, 4, 3
 
 #endif // GPIO
-
-#if 1 // ========================= Timer =======================================
-#endif // Timer
-
-#if I2C1_ENABLED // ====================== I2C ================================
-#define I2C1_BAUDRATE   400000
-#define I2C_PILL        i2c1
-#endif
-
-#if 1 // =========================== SPI =======================================
-#define CC_SPI          SPI1
-#define CC_SPI_AF       AF5
-#endif
 
 #if 1 // ========================== USART ======================================
 #define UART            USART1

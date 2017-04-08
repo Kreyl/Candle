@@ -54,6 +54,8 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #endif
 
+extern cc1101_t CC;
+
 #if 1 // =========================== Pkt_t =====================================
 union rPkt_t {
     uint32_t DWord32;
@@ -70,6 +72,8 @@ union rPkt_t {
 #endif
 
 #if 1 // =================== Channels, cycles, Rssi  ===========================
+#define CC_TX_PWR       CC_PwrPlus5dBm
+
 #define RCHNL_SERVICE   0
 #define RCHNL_COMMON    1
 #define RCHNL_EACH_OTH  7

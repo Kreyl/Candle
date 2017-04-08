@@ -12,6 +12,7 @@ Supported format specifiers:
 %[0][<width>]u - uint
 %[0][<width>]X - uint as hex
 %A - pair (uint8_t *arr, int len) as hex array
+%f - float (if enabled in board.h)
 */
 
 #ifndef ftVoidChar
@@ -22,6 +23,7 @@ typedef void(*ftVoidChar)(char);
 extern "C" {
 #endif
 uint32_t kl_vsprintf(ftVoidChar PPutChar, uint32_t MaxLength, const char *format, va_list args);
+uint32_t kl_bufprint(char *Buf, uint32_t MaxLength, const char *format, ...);
 #ifdef __cplusplus
 }
 #endif

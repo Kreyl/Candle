@@ -12,7 +12,6 @@
 #include "uart.h"
 #include "evt_mask.h"
 #include "board.h"
-#include "pill.h"
 
 // ==== Constants and default values ====
 #define ID_MIN                  1
