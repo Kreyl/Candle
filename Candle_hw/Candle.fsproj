@@ -10,7 +10,7 @@
 	<Document>
 		<LocalLibrary />
 		<Pcb>
-			<File path=".\Candle.fsx" isopened="1"/>
+			<File path=".\Candle.fsx" isopened="0"/>
 		</Pcb>
 		<Import>
 			<Specctra>

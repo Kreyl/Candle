@@ -81,7 +81,7 @@ union rPkt_t {
 #define RCHNL_MAX       30
 #define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 
-#define RSSI_MIN        -75
+#define RSSI_MIN        -85
 
 // Timings
 #define PKT_DURATION            4      // pkt duration at 100k
