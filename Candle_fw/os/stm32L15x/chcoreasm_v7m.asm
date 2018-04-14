@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -18,7 +18,7 @@
 */
 
 /**
- * @file    compilers/GCC/chcoreasm_v7m.s
+ * @file    compilers/GCC/chcoreasm_v7m.S
  * @brief   ARMv7-M architecture port low level code.
  *
  * @addtogroup ARMCMx_GCC_CORE
@@ -34,12 +34,23 @@
 #endif
 
 #define _FROM_ASM_
+#include "chlicense.h"
 #include "chconf.h"
 #include "chcore.h"
 
 #if !defined(__DOXYGEN__)
 
-                .set    CONTEXT_OFFSET, 12
+/*
+ * RTOS-specific context offset.
+ */
+#if defined(_CHIBIOS_RT_CONF_)
+#define CONTEXT_OFFSET  12
+#elif defined(_CHIBIOS_NIL_CONF_)
+#define CONTEXT_OFFSET  0
+#else
+#error "invalid chconf.h"
+#endif
+
                 .set    SCB_ICSR, 0xE000ED04
                 .set    ICSR_PENDSVSET, 0x10000000
 
@@ -64,8 +75,18 @@ _port_switch:
 #if CORTEX_USE_FPU
                 vpush   {s16-s31}
 #endif
+
                 str     sp, [r1, #CONTEXT_OFFSET]
+#if (CORTEX_SIMPLIFIED_PRIORITY == FALSE) &&                                \
+    ((CORTEX_MODEL == 3) || (CORTEX_MODEL == 4))
+                /* Workaround for ARM errata 752419, only applied if
+                   condition exists for it to be triggered.*/
+                ldr     r3, [r0, #CONTEXT_OFFSET]
+                mov     sp, r3
+#else
                 ldr     sp, [r0, #CONTEXT_OFFSET]
+#endif
+
 #if CORTEX_USE_FPU
                 vpop    {s16-s31}
 #endif
@@ -96,8 +117,14 @@ _port_thread_start:
 #endif
                 mov     r0, r5
                 blx     r4
+#if defined(_CHIBIOS_RT_CONF_)
                 movs    r0, #0              /* MSG_OK */
                 bl      chThdExit
+#endif
+#if defined(_CHIBIOS_NIL_CONF_)
+                mov     r3, #0
+                bl      chSysHalt
+#endif
 
 /*--------------------------------------------------------------------------*
  * Post-IRQ switch code.

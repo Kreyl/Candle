@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -18,17 +18,15 @@
 */
 
 /**
- * @file    ARMCMx/compilers/GCC/vectors.h
- * @brief   Interrupt vectors for Cortex-Mx devices.
+ * @file    chmem.h
+ * @brief   Memory alignment macros and structures.
  *
- * @defgroup ARMCMx_VECTORS Cortex-Mx Interrupt Vectors
+ * @addtogroup mem
  * @{
  */
 
-#ifndef _VECTORS_H_
-#define _VECTORS_H_
-
-#include "cmparams.h"
+#ifndef CHALIGN_H
+#define CHALIGN_H
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -46,47 +44,63 @@
 /* Module data structures and types.                                         */
 /*===========================================================================*/
 
-#if !defined(_FROM_ASM_)
-/**
- * @brief   Type of an IRQ vector.
- */
-typedef void  (*irq_vector_t)(void);
-
-/**
- * @brief   Type of a structure representing the whole vectors table.
- */
-typedef struct {
-  uint32_t      *init_stack;
-  irq_vector_t  reset_handler;
-  irq_vector_t  nmi_handler;
-  irq_vector_t  hardfault_handler;
-  irq_vector_t  memmanage_handler;
-  irq_vector_t  busfault_handler;
-  irq_vector_t  usagefault_handler;
-  irq_vector_t  vector1c;
-  irq_vector_t  vector20;
-  irq_vector_t  vector24;
-  irq_vector_t  vector28;
-  irq_vector_t  svc_handler;
-  irq_vector_t  debugmonitor_handler;
-  irq_vector_t  vector34;
-  irq_vector_t  pendsv_handler;
-  irq_vector_t  systick_handler;
-  irq_vector_t  vectors[CORTEX_NUM_VECTORS];
-} vectors_t;
-#endif /* !defined(_FROM_ASM_) */
-
 /*===========================================================================*/
 /* Module macros.                                                            */
 /*===========================================================================*/
 
+/**
+ * @name    Memory alignment support macros
+ */
+/**
+ * @brief   Alignment mask constant.
+ *
+ * @param[in] a         alignment, must be a power of two
+ */
+#define MEM_ALIGN_MASK(a)       ((size_t)(a) - 1U)
+
+/**
+ * @brief   Aligns to the previous aligned memory address.
+ *
+ * @param[in] p         variable to be aligned
+ * @param[in] a         alignment, must be a power of two
+ */
+#define MEM_ALIGN_PREV(p, a)                                                \
+  /*lint -save -e9033 [10.8] The cast is safe.*/                            \
+  ((size_t)(p) & ~MEM_ALIGN_MASK(a))                                        \
+  /*lint -restore*/
+
+/**
+ * @brief   Aligns to the new aligned memory address.
+ *
+ * @param[in] p         variable to be aligned
+ * @param[in] a         alignment, must be a power of two
+ */
+#define MEM_ALIGN_NEXT(p, a)                                                \
+  /*lint -save -e9033 [10.8] The cast is safe.*/                            \
+  MEM_ALIGN_PREV((size_t)(p) + MEM_ALIGN_MASK(a), (a))                      \
+  /*lint -restore*/
+
+/**
+ * @brief   Returns whatever a pointer or memory size is aligned.
+ *
+ * @param[in] p         variable to be aligned
+ * @param[in] a         alignment, must be a power of two
+ */
+#define MEM_IS_ALIGNED(p, a)    (((size_t)(p) & MEM_ALIGN_MASK(a)) == 0U)
+
+/**
+ * @brief   Returns whatever a constant is a valid alignment.
+ * @details Valid alignments are powers of two.
+ *
+ * @param[in] a         alignment to be checked, must be a constant
+ */
+#define MEM_IS_VALID_ALIGNMENT(a)                                           \
+  (((size_t)(a) != 0U) && (((size_t)(a) & ((size_t)(a) - 1U)) == 0U))
+/** @} */
+
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
-
-#if !defined(_FROM_ASM_)
-extern vectors_t _vectors;
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,6 +114,6 @@ extern "C" {
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* _VECTORS_H_ */
+#endif /* CHALIGN_H */
 
 /** @} */

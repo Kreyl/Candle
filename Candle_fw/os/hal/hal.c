@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,6 +24,26 @@
 
 #include "hal.h"
 
+/*===========================================================================*/
+/* Driver local definitions.                                                 */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver exported variables.                                                */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver local variables and types.                                         */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver local functions.                                                   */
+/*===========================================================================*/
+
+/*===========================================================================*/
+/* Driver exported functions.                                                */
+/*===========================================================================*/
+
 /**
  * @brief   HAL initialization.
  * @details This function invokes the low level initialization code then
@@ -36,10 +56,10 @@
 void halInit(void) {
 
   /* Initializes the OS Abstraction Layer.*/
-//  osalInit(); // @KL nothing here
+  osalInit();
 
   /* Platform low level initializations.*/
-  hal_lld_init();   // @KL APB, AHB, DMA, PWR
+  hal_lld_init();
 
 #if (HAL_USE_PAL == TRUE) || defined(__DOXYGEN__)
   palInit(&pal_default_config);
@@ -73,6 +93,9 @@ void halInit(void) {
 #endif
 #if (HAL_USE_PWM == TRUE) || defined(__DOXYGEN__)
   pwmInit();
+#endif
+#if (HAL_USE_QSPI == TRUE) || defined(__DOXYGEN__)
+  qspiInit();
 #endif
 #if (HAL_USE_SERIAL == TRUE) || defined(__DOXYGEN__)
   sdInit();
@@ -108,6 +131,9 @@ void halInit(void) {
   halCommunityInit();
 #endif
 #endif
+
+  /* Board specific initialization.*/
+//  boardInit();
 
 /*
  *  The ST driver is a special case, it is only initialized if the OSAL is

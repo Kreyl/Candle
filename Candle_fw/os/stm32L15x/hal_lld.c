@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 
 #include "hal.h"
 
+
 /**
  * @brief   Low level HAL driver initialization.
  *
@@ -45,15 +46,8 @@ void hal_lld_init(void) {
   dmaInit();
 #endif
 
-  // @KL
-  /* SYSCFG clock enabled here because it is a multi-functional unit shared
-      among multiple drivers.*/
-   rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, TRUE);
-
-
   /* Programmable voltage detector enable.*/
 #if STM32_PVD_ENABLE
   PWR->CR |= PWR_CR_PVDE | (STM32_PLS & STM32_PLS_MASK);
 #endif /* STM32_PVD_ENABLE */
 }
-

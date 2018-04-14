@@ -1,24 +1,21 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
-    This file is part of ChibiOS.
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    ChibiOS is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+        http://www.apache.org/licenses/LICENSE-2.0
 
-    ChibiOS is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 */
 
 /**
- * @file    crt0_v7m.s
+ * @file    crt0_v7m.S
  * @brief   Generic ARMv7-M (Cortex-M3/M4/M7) startup file for ChibiOS.
  *
  * @addtogroup ARMCMx_GCC_STARTUP_V7M
@@ -46,6 +43,7 @@
 #define FPCCR_ASPEN                         (1 << 31)
 #define FPCCR_LSPEN                         (1 << 30)
 
+#define SCB_VTOR                            0xE000ED08
 #define SCB_CPACR                           0xE000ED88
 #define SCB_FPCCR                           0xE000EF34
 #define SCB_FPDSCR                          0xE000EF3C
@@ -53,6 +51,14 @@
 /*===========================================================================*/
 /* Module pre-compile time settings.                                         */
 /*===========================================================================*/
+
+/**
+ * @brief   VTOR special register initialization.
+ * @details VTOR is initialized to point to the vectors table.
+ */
+#if !defined(CRT0_VTOR_INIT) || defined(__DOXYGEN__)
+#define CRT0_VTOR_INIT                      TRUE
+#endif
 
 /**
  * @brief   FPU initialization switch.
@@ -174,9 +180,22 @@ Reset_Handler:
                 /* Interrupts are globally masked initially.*/
                 cpsid   i
 
+#if CRT0_FORCE_MSP_INIT == TRUE
+                /* MSP stack pointers initialization.*/
+                ldr     r0, =__main_stack_end__
+                msr     MSP, r0
+#endif
+
                 /* PSP stack pointers initialization.*/
                 ldr     r0, =__process_stack_end__
                 msr     PSP, r0
+
+#if CRT0_VTOR_INIT == TRUE
+                ldr     r0, =_vectors
+                movw    r1, #SCB_VTOR & 0xFFFF
+                movt    r1, #SCB_VTOR >> 16
+                str     r0, [r1]
+#endif
 
 #if CRT0_INIT_FPU == TRUE
                 /* FPU FPCCR initialization.*/

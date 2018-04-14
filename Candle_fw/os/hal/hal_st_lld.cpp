@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    STM32/st_lld.c
+ * @file    TIMv1/hal_st_lld.c
  * @brief   ST Driver subsystem low level driver code.
  *
  * @addtogroup ST
@@ -52,7 +52,7 @@
 
 #define ST_HANDLER                          STM32_TIM2_HANDLER
 #define ST_NUMBER                           STM32_TIM2_NUMBER
-//#define ST_CLOCK_SRC                        STM32_TIMCLK1 // @KL
+#define ST_CLOCK_SRC                        STM32_TIMCLK1
 #define ST_ENABLE_CLOCK()                   rccEnableTIM2(FALSE)
 #if defined(STM32F1XX)
 #define ST_ENABLE_STOP()                    DBGMCU->CR |= DBGMCU_CR_DBG_TIM2_STOP
@@ -129,6 +129,29 @@
 #define ST_ENABLE_STOP()                    DBGMCU->APB1FZR1 |= DBGMCU_APB1FZR1_DBG_TIM5_STOP
 #else
 #define ST_ENABLE_STOP()                    DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM5_STOP
+#endif
+
+#elif STM32_ST_USE_TIMER == 14
+#if (OSAL_ST_RESOLUTION == 32) && !STM32_TIM14_IS_32BITS
+#error "TIM14 is not a 32bits timer"
+#endif
+
+#if defined(STM32_TIM14_IS_USED)
+#error "ST requires TIM14 but the timer is already used"
+#else
+#define STM32_TIM14_IS_USED
+#endif
+
+#define ST_HANDLER                          STM32_TIM14_HANDLER
+#define ST_NUMBER                           STM32_TIM14_NUMBER
+//#define ST_CLOCK_SRC                        STM32_TIMCLK1 // @KL
+#define ST_ENABLE_CLOCK()                   rccEnableTIM14(FALSE)
+#if defined(STM32F1XX)
+#define ST_ENABLE_STOP()                    DBGMCU->CR |= DBGMCU_CR_DBG_TIM3_STOP
+#elif defined(STM32L4XX)
+#define ST_ENABLE_STOP()                    DBGMCU->APB1FZR1 |= DBGMCU_APB1FZR1_DBG_TIM3_STOP
+#else
+#define ST_ENABLE_STOP()                    DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM14_STOP
 #endif
 
 #elif STM32_ST_USE_TIMER == 21
@@ -237,8 +260,7 @@ OSAL_IRQ_HANDLER(SysTick_Handler) {
  *
  * @isr
  */
-extern "C" {    // @KL
-
+extern "C"
 OSAL_IRQ_HANDLER(ST_HANDLER) {
 
   OSAL_IRQ_PROLOGUE();
@@ -256,8 +278,6 @@ OSAL_IRQ_HANDLER(ST_HANDLER) {
 
   OSAL_IRQ_EPILOGUE();
 }
-
-} // extern c @KL
 #endif /* OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING */
 
 /*===========================================================================*/
