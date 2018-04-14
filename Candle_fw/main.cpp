@@ -14,6 +14,7 @@
 //#include "kl_adc.h"
 #include "MsgQ.h"
 #include "main.h"
+#include "ColorTable.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -30,6 +31,10 @@ static uint8_t ISetID(int32_t NewID);
 void ReadIDfromEE();
 
 LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
+LedRGBChunk_t lsqSetColor[] = {
+        {csSetup, 90, clRed},
+        {csEnd},
+};
 
 // ==== Timers ====
 static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
@@ -62,6 +67,7 @@ int main(void) {
 //    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
+    lsqSetColor[0].Color = *ColorTable.GetCurrent();
 #if BUTTONS_ENABLED
     SimpleSensors::Init();
 #endif
@@ -74,7 +80,9 @@ int main(void) {
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
-    chThdSleepMilliseconds(1008);
+    chThdSleepMilliseconds(2700);
+    // Show current color
+    Led.StartOrRestart(lsqSetColor);
 
     // Main cycle
     ITask();
@@ -91,34 +99,33 @@ void ITask() {
 
 #if BUTTONS_ENABLED
             case evtIdButtons:
-                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID[0]);
+//                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID[0]);
+                switch(Msg.BtnEvtInfo.Type) {
+                    case beShortPress:
+                    case beRepeat:
+                        switch(Msg.BtnEvtInfo.BtnID[0]) {
+                            case 0: // Transmit
+                                Printf("Tx\r");
+                                break;
+                            case 1: // Up
+                                Printf("Up\r");
+                                break;
+                            case 2: // Down
+                                Printf("Down\r");
+                                break;
+                            default: break;
+                        } // switch BtnId
+                        break;
+                    case beCombo:
+                        if((Msg.BtnEvtInfo.BtnID[0] == 1 and Msg.BtnEvtInfo.BtnID[1] == 2) or
+                           (Msg.BtnEvtInfo.BtnID[0] == 2 and Msg.BtnEvtInfo.BtnID[1] == 1)) {
+                            Printf("Combo\r");
+                        }
+                        break;
+                    default: break;
+                } // switch
                 break;
 #endif
-
-//        if(Evt & EVT_RX) {
-//            int32_t TimeRx = Radio.PktRx.Time;
-//            Uart.Printf("RX %u\r", TimeRx);
-//            Cataclysm.ProcessSignal(TimeRx);
-//        }
-
-//            case evtIdCheckRxTable: {
-//                uint32_t Cnt = Radio.RxTable.GetCount();
-//                switch(Cnt) {
-//                    case 0: Vibro.Stop(); break;
-//                    case 1: Vibro.StartOrContinue(vsqBrr); break;
-//                    case 2: Vibro.StartOrContinue(vsqBrrBrr); break;
-//                    default: Vibro.StartOrContinue(vsqBrrBrrBrr); break;
-//                }
-//                Radio.RxTable.Clear();
-//            } break;
-
-        //        if(Evt & EVT_OFF) {
-        ////            Uart.Printf("Off\r");
-        //            chSysLock();
-        //            Sleep::EnableWakeup1Pin();
-        //            Sleep::EnterStandby();
-        //            chSysUnlock();
-        //        }
 
 #if UART_RX_ENABLED
             case evtIdShellCmd:
