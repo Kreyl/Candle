@@ -9,7 +9,7 @@
 
 #include "inttypes.h"
 #include <sys/cdefs.h>
-#include "uart.h"
+#include "shell.h"
 
 #define LUM_MAX     100
 
@@ -25,8 +25,11 @@ struct Color_t {
     union {
         uint32_t DWord32;
         struct {
-            uint8_t R, G, B, Lum;
-        };
+            uint8_t R, G, B;
+            union {
+                uint8_t Lum, W;
+            };
+        } __attribute__((packed));
     };
     bool operator == (const Color_t &AColor) const { return (DWord32 == AColor.DWord32); }
     bool operator != (const Color_t &AColor) const { return (DWord32 != AColor.DWord32); }
@@ -113,14 +116,14 @@ struct Color_t {
         Delay2 = (Lum == AClr.Lum)? 0 : ClrCalcDelay(Lum, SmoothValue);
         return (Delay2 > Delay)? Delay2 : Delay;
     }
-    void Print() { Uart.Printf("{%u, %u, %u; %u}\r", R, G, B, Lum); }
+    void Print() { Printf("{%u, %u, %u; %u}\r", R, G, B, Lum); }
     Color_t() : R(0), G(0), B(0), Lum(LUM_MAX) {}
     Color_t(uint8_t AR, uint8_t AG, uint8_t AB) : R(AR), G(AG), B(AB), Lum(LUM_MAX) {}
     Color_t(uint8_t AR, uint8_t AG, uint8_t AB, uint8_t ALum) : R(AR), G(AG), B(AB), Lum(ALum) {}
 } __attribute__((packed));
 
 
-// ============================ Common methods =================================
+#if 1 // ============================ Common methods ===========================
 #define RED_OF(c)           (((c) & 0xF800)>>8)
 #define GREEN_OF(c)         (((c)&0x007E)>>3)
 #define BLUE_OF(c)          (((c)&0x001F)<<3)
@@ -155,7 +158,93 @@ static uint16_t ColorBlend(Color_t fg, Color_t bg, uint16_t alpha) {
     return RGBTo565(r, g, b);
 }
 
-// ==== Colors ====
+__attribute__((__always_inline__))
+static inline int32_t Abs32(int32_t w) {
+    return (w < 0)? -w : w;
+}
+#endif
+
+#if 1 // ============================== HSL ====================================
+struct ColorHSL_t {
+    union {
+        uint32_t DWord32;
+        struct {
+            uint16_t H;     // 0...360
+            uint8_t S, L;   // 0...100
+        };
+    };
+    void ToRGB(uint8_t *PR, uint8_t *PG, uint8_t *PB) const {
+        // Calc chroma: 0...255
+        int32_t S1 = ((int32_t)S * 255) / 100;
+        int32_t L1 = ((int32_t)L * 255) / 100;
+        int32_t C = 255 - Abs32(L1 * 2 - 255);  // <=> 1 - |2*L - 1|
+        C = (C * S1) / 255;                     // <=> (1 - |2*L - 1|) * S
+        // Tmp values
+        int32_t X = 60 - Abs32((H % 120) - 60); // 0...60
+        X = (C * X) / 60;
+        int32_t m = L1 - C / 2; // To add the same amount to each component, to match lightness
+        // RGB in first glance
+        if     (H < 60)  { *PR = C+m; *PG = X+m; *PB = m;   } // [0; 60)
+        else if(H < 120) { *PR = X+m; *PG = C+m; *PB = m;   }
+        else if(H < 180) { *PR = m;   *PG = C+m; *PB = X+m; }
+        else if(H < 240) { *PR = m;   *PG = X+m; *PB = C+m; }
+        else if(H < 300) { *PR = X+m; *PG = m;   *PB = C+m; }
+        else             { *PR = C+m; *PG = m;   *PB = X+m; } // [300; 360]
+    }
+
+    void ToRGB(Color_t &AColor) { ToRGB(&AColor.R, &AColor.G, &AColor.B); }
+
+    ColorHSL_t(uint16_t AH, uint8_t AS, uint8_t AL) : H(AH), S(AS), L(AL) {}
+} __attribute__((packed));
+#endif
+
+#if 1 // ============================== HSV ====================================
+struct ColorHSV_t {
+    union {
+        uint32_t DWord32;
+        struct {
+            uint16_t H;     // 0...360
+            uint8_t S, V;   // 0...100
+        };
+    };
+    void ToRGB(uint8_t *PR, uint8_t *PG, uint8_t *PB) const {
+        // Calc chroma: 0...255
+        int32_t C = ((int32_t)V * (int32_t)S * 255) / 10000;
+        // Tmp values
+        int32_t X = 60 - Abs32((H % 120) - 60); // 0...60
+        X = (C * X) / 60;
+        int32_t m = (((int32_t)V * 255) / 100) - C; // To add the same amount to each component, to match lightness
+        // RGB
+        if     (H < 60)  { *PR = C+m; *PG = X+m; *PB = m;   } // [0; 60)
+        else if(H < 120) { *PR = X+m; *PG = C+m; *PB = m;   }
+        else if(H < 180) { *PR = m;   *PG = C+m; *PB = X+m; }
+        else if(H < 240) { *PR = m;   *PG = X+m; *PB = C+m; }
+        else if(H < 300) { *PR = X+m; *PG = m;   *PB = C+m; }
+        else             { *PR = C+m; *PG = m;   *PB = X+m; } // [300; 360]
+    }
+
+    void ToRGB(Color_t &AColor) { ToRGB(&AColor.R, &AColor.G, &AColor.B); }
+    Color_t ToRGB() {
+        Color_t rgb;
+        ToRGB(&rgb.R, &rgb.G, &rgb.B);
+        return rgb;
+    }
+
+    ColorHSV_t(uint16_t AH, uint8_t AS, uint8_t AV) : H(AH), S(AS), V(AV) {}
+    ColorHSV_t(const ColorHSV_t &AClr) : H(AClr.H), S(AClr.S), V(AClr.V) {}
+} __attribute__((packed));
+
+// Colors
+#define hsvRed       ((ColorHSV_t){  0, 100, 100})
+#define hsvYellow    ((ColorHSV_t){ 60, 100, 100})
+#define hsvGreen     ((ColorHSV_t){120, 100, 100})
+#define hsvCyan      ((ColorHSV_t){180, 100, 100})
+#define hsvBlue      ((ColorHSV_t){240, 100, 100})
+#define hsvMagenta   ((ColorHSV_t){300, 100, 100})
+#define hsvWhite     ((ColorHSV_t){0,   0,   100})
+#endif
+
+#if 1 // ============================= Colors ==================================
 #define clBlack     ((Color_t){0,   0,   0})
 #define clRed       ((Color_t){255, 0,   0})
 #define clGreen     ((Color_t){0,   255, 0})
@@ -179,3 +268,14 @@ static uint16_t ColorBlend(Color_t fg, Color_t bg, uint16_t alpha) {
 #define clDarkWhite     ((Color_t){CL_DARK_V, CL_DARK_V, CL_DARK_V})
 
 #define clLightBlue ((Color_t){90, 90, 255})
+
+// RGBW
+#define clRGBWBlack     ((Color_t){0,   0,   0,   0})
+#define clRGBWRed       ((Color_t){255, 0,   0,   0})
+#define clRGBWGreen     ((Color_t){0,   255, 0,   0})
+#define clRGBWBlue      ((Color_t){0,   0,   255, 0})
+#define clRGBWYellow    ((Color_t){255, 255, 0,   0})
+#define clRGBWMagenta   ((Color_t){255, 0, 255,   0})
+#define clRGBWCyan      ((Color_t){0, 255, 255,   0})
+#define clRGBWWhite     ((Color_t){0,   0,   0, 255})
+#endif

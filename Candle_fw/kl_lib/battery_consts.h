@@ -18,7 +18,8 @@ struct mVPercent_t {
     uint8_t k;
 };
 
-enum BatteryState_t {bstDischarging, bstCharging, bstIdle};
+//enum BatteryState_t {bstDischarging, bstCharging, bstIdle};
+enum BatteryState_t {bsNone, bsEmpty, bsHalf, bsFull};
 
 #if 0 // ========================= Alkaline 1.5V ===============================
 static const mVPercent_t mVPercentTableAlkaline[] = {
@@ -28,6 +29,24 @@ static const mVPercent_t mVPercentTableAlkaline[] = {
         {1170, 40},
         {1080, 20},
         {930,  10}
+};
+#define mVPercentTableAlkalineSz    countof(mVPercentTableAlkaline)
+
+static uint8_t mV2PercentAlkaline(uint16_t mV) {
+    for(uint8_t i=0; i<mVPercentTableAlkalineSz; i++)
+        if(mV >= mVPercentTableAlkaline[i].mV) return mVPercentTableAlkaline[i].Percent;
+    return 0;
+}
+#endif
+
+#if 0 // ========================= Alkaline 4.5V ===============================
+static const mVPercent_t mVPercentTableAlkaline[] = {
+        {4320, 100},
+        {4110, 80},
+        {3810, 60},
+        {3510, 40},
+        {3240, 20},
+        {2790, 10}
 };
 #define mVPercentTableAlkalineSz    countof(mVPercentTableAlkaline)
 
@@ -60,7 +79,7 @@ static uint8_t mV2PercentLiIon(uint16_t mV) {
 }
 #endif
 
-#if 1 // ============================ EEMB =====================================
+#if 0 // ============================ EEMB =====================================
 #define BAT_TOP_mV          4140
 #define BAT_ZERO_mV         3340
 #define BAT_END_mV          3100    // Do not operate if Ubat <= BAT_END_V

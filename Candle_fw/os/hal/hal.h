@@ -135,7 +135,7 @@
 //#include "hal_qspi.h"
 //#include "hal_rtc.h"
 //#include "hal_serial.h"
-#include "hal_sdc.h"
+//#include "hal_sdc.h"
 //#include "hal_spi.h"
 //#include "hal_uart.h"
 //#include "hal_usb.h"

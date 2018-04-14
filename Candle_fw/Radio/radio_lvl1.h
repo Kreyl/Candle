@@ -11,7 +11,8 @@
 #include "ch.h"
 #include "cc1101.h"
 #include "kl_buf.h"
-#include "uart.h"
+#include "shell.h"
+#include "MsgQ.h"
 
 #if 0 // ========================= Signal levels ===============================
 // Python translation for db
@@ -54,140 +55,91 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #endif
 
-extern cc1101_t CC;
+#define CC_TX_PWR   CC_PwrPlus5dBm
 
 #if 1 // =========================== Pkt_t =====================================
-union rPkt_t {
-    uint32_t DWord32;
-    int32_t Time;
-//    struct {
-//        uint8_t R, G, B;
-//    };
-    bool operator == (const rPkt_t &APkt) { return (DWord32 == APkt.DWord32); }
-    rPkt_t& operator = (const rPkt_t &Right) { DWord32 = Right.DWord32; return *this; }
-} __attribute__ ((__packed__));
-#define RPKT_LEN    sizeof(rPkt_t)
+union rPkt_t  {
+    uint32_t DWord[2];
+    struct {
+        uint8_t Length;
+        int8_t Ch[4];
+        uint8_t R1, R2;
+        uint8_t Btns;
+    } __packed;
+    rPkt_t& operator = (const rPkt_t &Right) {
+        DWord[0] = Right.DWord[0];
+        DWord[1] = Right.DWord[1];
+        return *this;
+    }
+    void Print() { Printf("%d %d %d %d %d %d; %X\r", Ch[0],Ch[1],Ch[2],Ch[3],R1, R2, Btns); }
+} __packed;
 
-#define THE_WORD        0xCA115EA1
+#define RPKT_LEN    7   // 7 bytes of payload
+
+struct rPktReply_t {
+    uint8_t Length;
+    uint8_t Reply;
+} __packed;
+
+#define REPLY_PKT_LEN   1
+
 #endif
 
-#if 1 // =================== Channels, cycles, Rssi  ===========================
-#define CC_TX_PWR       CC_Pwr0dBm
-
-#define RCHNL_SERVICE   0
-#define RCHNL_COMMON    1
-#define RCHNL_EACH_OTH  7
-#define RCHNL_MIN       1
-#define RCHNL_MAX       30
+#if 1 // ======================= Channels & cycles =============================
+#define RCHNL_SRV       0
 #define ID2RCHNL(ID)    (RCHNL_MIN + ID)
+#endif
 
-#define RSSI_MIN        -85
-
-// Timings
-#define PKT_DURATION            4      // pkt duration at 100k
-#define TX_SLEEP_TIME
-
+#if 1 // =========================== Timings ===================================
+#define RX_T_MS                 11
 #define RX_SLEEP_T_MS           810
 #define MIN_SLEEP_DURATION_MS   18
-
-
-// Feel-Each-Other related
-#define CYCLE_CNT           7
-#define SLOT_CNT            4
-#define SLOT_DURATION_MS    (PKT_DURATION * 2)
+#define RETRY_CNT               2
 
 #endif
 
-#if 1 // ============================= RX Table ================================
-#define RXTABLE_SZ              4
-#define RXT_PKT_REQUIRED        FALSE
-class RxTable_t {
-private:
-#if RXT_PKT_REQUIRED
-    rPkt_t IBuf[RXTABLE_SZ];
-#else
-    uint8_t IdBuf[RXTABLE_SZ];
-#endif
-    uint32_t Cnt = 0;
-public:
-#if RXT_PKT_REQUIRED
-    void AddOrReplaceExistingPkt(rPkt_t &APkt) {
-        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == APkt.ID) {
-                IBuf[i] = APkt; // Replace with newer pkt
-                return;
-            }
-        }
-        IBuf[Cnt] = APkt;
-        Cnt++;
-    }
+#define RMSG_Q_LEN      18
+#define RMSGID_PKT      1
+#define RMSGID_CHNL     2
 
-    uint8_t GetPktByID(uint8_t ID, rPkt_t **ptr) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == ID) {
-                *ptr = &IBuf[i];
-                return OK;
-            }
-        }
-        return FAILURE;
+union RMsg_t {
+    uint32_t DWord[3];
+    rPkt_t Pkt;
+    struct {
+        uint32_t _Rsrvd;
+        uint32_t Value;
+        uint32_t ID;
+    };
+    RMsg_t& operator = (const RMsg_t &Right) {
+        DWord[0] = Right.DWord[0];
+        DWord[1] = Right.DWord[1];
+        DWord[2] = Right.DWord[2];
+        return *this;
     }
+    RMsg_t() {
+        DWord[0] = 0;
+        DWord[1] = 0;
+        DWord[2] = 0;
+    }
+    RMsg_t(rPkt_t &APkt)  { ID = RMSGID_PKT;  Pkt = APkt; }
+    RMsg_t(uint8_t AChnl) { ID = RMSGID_CHNL; Value = AChnl; _Rsrvd = 0; }
+} __attribute__((__packed__));
 
-    bool IDPresents(uint8_t ID) {
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IBuf[i].ID == ID) return true;
-        }
-        return false;
-    }
-#else
-    void AddIdI(uint8_t ID) {
-        if(Cnt >= RXTABLE_SZ) return;   // Buffer is full, nothing to do here
-        for(uint32_t i=0; i<Cnt; i++) {
-            if(IdBuf[i] == ID) return;
-        }
-        IdBuf[Cnt] = ID;
-        Cnt++;
-    }
-
-#endif
-    uint32_t GetCount() { return Cnt; }
-    void Clear() { Cnt = 0; }
-
-    void Print() {
-        Uart.Printf("RxTable Cnt: %u\r", Cnt);
-        for(uint32_t i=0; i<Cnt; i++) {
-#if RXT_PKT_REQUIRED
-            Uart.Printf("ID: %u; State: %u\r", IBuf[i].ID, IBuf[i].State);
-#else
-            Uart.Printf("ID: %u\r", IdBuf[i]);
-#endif
-        }
-    }
-};
-#endif
 
 class rLevel1_t {
-public:
-    rPkt_t PktRx, PktTx;
-//    bool MustTx = false;
-    thread_t *PThd;
-    int8_t Rssi;
-    RxTable_t RxTable;
-    uint8_t TxPwr = CC_PwrMinus30dBm;
-    uint8_t Init();
-    // Inner use
+private:
     void TryToSleep(uint32_t SleepDuration) {
-        if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
-        chThdSleepMilliseconds(SleepDuration);
+//        if(SleepDuration >= MIN_SLEEP_DURATION_MS) CC.EnterPwrDown();
+        chThdSleepMilliseconds(SleepDuration); // XXX
     }
-    void TryToReceive(uint32_t RxDuration);
-    // Different modes of operation
-    void TaskTransmitter();
-    void TaskReceiverManyByID();
-    void TaskReceiverManyByChannel();
-    void TaskReceiverSingle();
-    void TaskFeelEachOtherSingle();
-    void TaskFeelEachOtherMany();
+public:
+    int8_t Rssi;
+    EvtMsgQ_t<RMsg_t, RMSG_Q_LEN> RMsgQ;
+    rPktReply_t rPktReply;
+    uint8_t Init();
+    void SetChannel(uint8_t NewChannel);
+    // Inner use
+    void ITask();
 };
 
 extern rLevel1_t Radio;

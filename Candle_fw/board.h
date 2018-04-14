@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Candle04"
-#define APP_NAME            "Candle_FeelEO"
+#define APP_NAME            "Candle_TxColor"
 
 // ==== High-level peripery control ====
 #define BTN_ENABLED         FALSE
@@ -22,7 +22,7 @@
 #define STM32L151xB
 
 #define SYS_TIM_CLK         (Clk.APB1FreqHz)
-#define I2C1_ENABLED        PILL_ENABLED
+#define I2C1_ENABLED        FALSE
 #define I2C_USE_SEMAPHORE   FALSE
 #define ADC_REQUIRED        FALSE
 
@@ -44,14 +44,13 @@
 #define BTN_PIN         { GPIOA, 0, pudPullDown }
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
-#define CC_Setup        SPI1, GPIOA, 5,6,7, 4, 3
+#define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
 
 #endif // GPIO
 
 #if 1 // ========================== USART ======================================
-#define UART            USART1
-#define UART_TX_REG     UART->DR
-#define UART_RX_REG     UART->DR
+#define CMD_UART        USART1
+#define UART_TXBUF_SZ   256
 #endif
 
 #if ADC_REQUIRED // ======================= Inner ADC ==========================
