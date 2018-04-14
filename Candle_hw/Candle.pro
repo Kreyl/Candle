@@ -1,4 +1,4 @@
-update=26.03.2017 15:12:33
+update=14.04.2018 15:13:23
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,16 +27,4 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=D:/Libs/Kicad
-[eeschema/libraries]
-LibName1=pcb_details
-LibName2=power
-LibName3=Power_kl
-LibName4=RF ICs
-LibName5=st_kl
-LibName6=Tittar_kl
-LibName7=Transistors_kl
-LibName8=Switches
-LibName9=Sensors
-LibName10=Antennas_kl
-LibName11=Connectors_kl
+LibDir=

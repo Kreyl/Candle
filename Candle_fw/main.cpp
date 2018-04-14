@@ -62,8 +62,8 @@ int main(void) {
 //    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
-#if BTN_ENABLED
-    PinSensors.Init();
+#if BUTTONS_ENABLED
+    SimpleSensors::Init();
 #endif
 //    Adc.Init();
 
@@ -89,20 +89,10 @@ void ITask() {
 //                TimeS++;
                 break;
 
-#if BTN_ENABLED
+#if BUTTONS_ENABLED
             case evtIdButtons:
-                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID);
+                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID[0]);
                 break;
-        if(Evt & EVT_BUTTONS) {
-            Uart.Printf("Btn\r");
-            BtnEvtInfo_t EInfo;
-            while(BtnGetEvt(&EInfo) == OK) {
-                if(EInfo.Type == bePress) {
-                    Sheltering.TimeOfBtnPress = TimeS;
-                    Sheltering.ProcessCChangeOrBtn();
-                } // if Press
-            } // while
-        }
 #endif
 
 //        if(Evt & EVT_RX) {

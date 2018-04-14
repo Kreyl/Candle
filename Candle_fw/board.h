@@ -14,9 +14,9 @@
 #define APP_NAME            "Candle_TxColor"
 
 // ==== High-level peripery control ====
-#define BTN_ENABLED         FALSE
+#define BUTTONS_ENABLED         TRUE
 
-#define SIMPLESENSORS_ENABLED   BTN_ENABLED
+#define SIMPLESENSORS_ENABLED   BUTTONS_ENABLED
 
 // MCU type as defined in the ST header.
 #define STM32L151xB
@@ -40,8 +40,10 @@
 #define LED_G_PIN       { GPIOB, 0, TIM3, 3, invInverted, omOpenDrain, 255 }
 #define LED_B_PIN       { GPIOB, 1, TIM3, 4, invInverted, omOpenDrain, 255 }
 
-// Button
-#define BTN_PIN         { GPIOA, 0, pudPullDown }
+// Buttons
+#define BTN_TX_PIN      GPIOA, 0, pudPullDown
+#define BTN_UP_PIN      GPIOB, 10, pudPullDown
+#define BTN_DOWN_PIN    GPIOB, 11, pudPullDown
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
