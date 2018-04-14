@@ -45,6 +45,10 @@
 #define BTN_UP_PIN      GPIOB, 10, pudPullDown
 #define BTN_DOWN_PIN    GPIOB, 11, pudPullDown
 
+#define BTN_TX_INDX     0
+#define BTN_UP_INDX     1
+#define BTN_DOWN_INDX   2
+
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
 

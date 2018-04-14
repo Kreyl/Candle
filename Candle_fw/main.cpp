@@ -102,23 +102,26 @@ void ITask() {
 //                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID[0]);
                 switch(Msg.BtnEvtInfo.Type) {
                     case beShortPress:
+                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                            Printf("Tx On\r");
+                        }
+                        // No break is intentional
                     case beRepeat:
-                        switch(Msg.BtnEvtInfo.BtnID[0]) {
-                            case 0: // Transmit
-                                Printf("Tx\r");
-                                break;
-                            case 1: // Up
-                                Printf("Up\r");
-                                break;
-                            case 2: // Down
-                                Printf("Down\r");
-                                break;
-                            default: break;
-                        } // switch BtnId
+                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_UP_INDX) {
+                            Printf("Up\r");
+                        }
+                        else if(Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
+                            Printf("Down\r");
+                        }
+                        break;
+                    case beRelease:
+                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                            Printf("Tx Off\r");
+                        }
                         break;
                     case beCombo:
-                        if((Msg.BtnEvtInfo.BtnID[0] == 1 and Msg.BtnEvtInfo.BtnID[1] == 2) or
-                           (Msg.BtnEvtInfo.BtnID[0] == 2 and Msg.BtnEvtInfo.BtnID[1] == 1)) {
+                        if((Msg.BtnEvtInfo.BtnID[0] == BTN_UP_INDX and Msg.BtnEvtInfo.BtnID[1] == BTN_DOWN_INDX) or
+                           (Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX and Msg.BtnEvtInfo.BtnID[1] == BTN_UP_INDX)) {
                             Printf("Combo\r");
                         }
                         break;
