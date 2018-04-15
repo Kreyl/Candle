@@ -23,7 +23,8 @@ static void ITask();
 static void OnCmd(Shell_t *PShell);
 
 // EEAddresses
-#define EE_ADDR_DEVICE_ID       0
+#define EE_ADDR_DEVICE_ID   0
+#define EE_ADDR_CLR         4
 int32_t ID;
 static uint8_t ISetID(int32_t NewID);
 void ReadIDfromEE();
@@ -53,13 +54,14 @@ static State_t State = stateOff;
 
 static void BtnHandlerActive(BtnEvtInfo_t BtnEvtInfo);
 static void BtnHandlerPreOff(BtnEvtInfo_t BtnEvtInfo);
+static void LoadColor();
 static void SaveColor();
 static void EnterOff();
 
 // ==== Timers ====
 //static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
-static TmrKL_t TmrOff {MS2ST(1800), evtIdTmrOff, tktOneShot};
+static TmrKL_t TmrOff {MS2ST(9000), evtIdTmrOff, tktOneShot};
 
 //static int32_t TimeS;
 #endif
@@ -100,11 +102,13 @@ int main(void) {
 //    TmrRxTableCheck.InitAndStart();
 
     // ==== Radio ====
-    if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
-    else Led.StartOrRestart(lsqFailure);
-    chThdSleepMilliseconds(1800);
+    if(Radio.Init() != retvOk) {
+        Led.StartOrRestart(lsqFailure);
+        chThdSleepMilliseconds(3600);
+    }
 
     // Show current color
+    LoadColor();
     ClrRGB = ClrHSV.ToRGB();
     lsqFadeIn[0].Color = ClrRGB;
     Led.StartOrRestart(lsqFadeIn);
@@ -228,12 +232,37 @@ static void BtnHandlerPreOff(BtnEvtInfo_t BtnEvtInfo) {
     } // switch
 }
 
+void LoadColor() {
+    Printf("LoadColor\r");
+    ClrHSV.DWord32 = EE::Read32(EE_ADDR_CLR);
+    if(ClrHSV.S != CLR_HSV_S_MAX or ClrHSV.V != CLR_HSV_V_MAX) {
+        ClrHSV.H = 0;
+        ClrHSV.S = CLR_HSV_S_MAX;
+        ClrHSV.V = CLR_HSV_S_MAX;
+    }
+}
 void SaveColor() {
-    Printf("SaveColor\r");
+    uint32_t tmp = EE::Read32(EE_ADDR_CLR);
+    if(tmp == ClrHSV.DWord32) Printf("Color not changed\r");
+    else {
+        uint8_t rslt = EE::Write32(EE_ADDR_CLR, ClrHSV.DWord32);
+        if(rslt == retvOk) Printf("Color saved\r");
+        else Printf("EE error: %u\r", rslt);
+    }
 }
 
 void EnterOff() {
     Printf("EnterOff\r");
+    Radio.MustTx = false;
+    chThdSleepMilliseconds(45);
+    while(GetBtnState(0) != BTN_IDLE_STATE) {
+        chThdSleepMilliseconds(18);
+    }
+    chSysLock();
+    Sleep::EnableWakeup1Pin();
+    Sleep::EnterStandby();
+    chSysUnlock();
+    Printf("AfterSleep\r");
 }
 
 

@@ -49,15 +49,16 @@ void rLevel1_t::ITask() {
             CC.Recalibrate();
             Pkt.Clr = ClrRGB;
             CC.Transmit(&Pkt, RPKT_LEN);
+//            Printf("tx\r");
         }
         else {
             if(!IsSleeping) {
                 IsSleeping = true;
-                CC.EnterPwrDown();
+                CC.PowerOff();
                 Printf("CC Sleep\r");
             }
         }
-        chThdSleepMilliseconds(27);
+        chThdSleepMilliseconds(18);
     } // while
 }
 #endif // task
