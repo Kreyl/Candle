@@ -191,10 +191,10 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 #if 1 // ============================ LED RGB ==================================
 #define LOW_BRTNESS     4
 const LedRGBChunk_t lsqStart[] = {
-        {csSetup, 90, clRed},
-        {csSetup, 90, clGreen},
-        {csSetup, 90, clBlue},
-        {csSetup, 90, clBlack},
+        {csSetup, 36, clRed},
+        {csSetup, 36, clGreen},
+        {csSetup, 36, clBlue},
+        {csSetup, 36, clBlack},
         {csEnd},
 };
 

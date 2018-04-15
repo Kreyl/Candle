@@ -32,28 +32,34 @@ LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
 ColorHSV_t ClrHSV{0, 100, 100};
 Color_t ClrRGB;
 
-LedRGBChunk_t lsqFadeOthers[] = {
-        {csSetup, 0, clBlack},
+LedRGBChunk_t lsqFadeIn[] = {
+        {csSetup, 360, clBlack},
+        {csEnd},
+};
+
+LedRGBChunk_t lsqFadeOut[] = {
+        {csSetup, 360, clBlack},
+        {csEnd},
+};
+
+LedRGBChunk_t lsqFadeInBlue[] = {
         {csSetup, 360, clDarkBlue},
         {csEnd},
 };
 
-LedRGBChunk_t lsqFadeSelf[] = {
-        {csSetup, 0, clBlack},
-        {csSetup, 360, clBlack},
-        {csEnd},
-};
 
-LedRGBChunk_t lsqFadeIn[] = {
-        {csSetup, 0, clBlack},
-        {csSetup, 360, clBlack},
-        {csEnd},
-};
-static bool WasOff = false;
+enum State_t {stateOff, stateFadeIn, stateActive, stateFadeOut, statePreOff};
+static State_t State = stateOff;
+
+static void BtnHandlerActive(BtnEvtInfo_t BtnEvtInfo);
+static void BtnHandlerPreOff(BtnEvtInfo_t BtnEvtInfo);
+static void SaveColor();
+static void EnterOff();
 
 // ==== Timers ====
-static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
+//static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
 //static TmrKL_t TmrRxTableCheck {MS2ST(2007), evtIdCheckRxTable, tktPeriodic};
+static TmrKL_t TmrOff {MS2ST(1800), evtIdTmrOff, tktOneShot};
 
 //static int32_t TimeS;
 #endif
@@ -82,6 +88,8 @@ int main(void) {
 //    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
+    Led.SetupSeqEndEvt(EvtMsg_t(evtIdLedSeqEnd));
+
 #if BUTTONS_ENABLED
     SimpleSensors::Init();
 #endif
@@ -95,11 +103,12 @@ int main(void) {
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
     chThdSleepMilliseconds(1800);
+
     // Show current color
-    Led.Stop();
     ClrRGB = ClrHSV.ToRGB();
-    lsqFadeIn[1].Color = ClrRGB;
+    lsqFadeIn[0].Color = ClrRGB;
     Led.StartOrRestart(lsqFadeIn);
+    State = stateFadeIn;
 
     // Main cycle
     ITask();
@@ -117,67 +126,23 @@ void ITask() {
 #if BUTTONS_ENABLED
             case evtIdButtons:
 //                Printf("Btn %u\r", Msg.BtnEvtInfo.BtnID[0]);
-                switch(Msg.BtnEvtInfo.Type) {
-                    case beShortPress:
-                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
-                            Printf("Tx On\r");
-                            Radio.MustTx = true;
-                            if(ClrRGB == clBlack) Led.StartOrRestart(lsqFadeOthers);
-                        }
-                        // No break is intentional
-                    case beRepeat:
-                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_UP_INDX) {
-                            Printf("Up\r");
-                            if(ClrRGB == clBlack) {
-                                ClrRGB = ClrHSV.ToRGB();
-                                lsqFadeIn[1].Color = ClrRGB;
-                                Led.StartOrRestart(lsqFadeIn);
-                            }
-                            else {
-                                ClrHSV.H++;
-                                if(ClrHSV.H > CLR_HSV_H_MAX) ClrHSV.H = 0;
-                                ClrRGB = ClrHSV.ToRGB();
-                                Led.Stop();
-                                Led.SetColor(ClrRGB);
-                            }
-                        }
-                        else if(Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
-                            Printf("Down\r");
-                            if(ClrRGB == clBlack) {
-                                ClrRGB = ClrHSV.ToRGB();
-                                lsqFadeIn[1].Color = ClrRGB;
-                                Led.StartOrRestart(lsqFadeIn);
-                            }
-                            else {
-                                if(ClrHSV.H == 0) ClrHSV.H = CLR_HSV_H_MAX;
-                                else ClrHSV.H--;
-                                ClrRGB = ClrHSV.ToRGB();
-                                Led.Stop();
-                                Led.SetColor(ClrRGB);
-                            }
-                        }
-                        break;
-                    case beRelease:
-                        if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
-                            Printf("Tx Off\r");
-                            Radio.MustTx = false;
-                            lsqFadeSelf[0].Color = clDarkBlue;
-                            Led.StartOrRestart(lsqFadeSelf);
-                        }
-                        break;
-                    case beCombo:
-                        if((Msg.BtnEvtInfo.BtnID[0] == BTN_UP_INDX and Msg.BtnEvtInfo.BtnID[1] == BTN_DOWN_INDX) or
-                           (Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX and Msg.BtnEvtInfo.BtnID[1] == BTN_UP_INDX)) {
-                            Printf("Combo\r");
-                        }
-                        lsqFadeSelf[0].Color = ClrRGB;
-                        ClrRGB = clBlack;
-                        Led.StartOrRestart(lsqFadeSelf);
-                        break;
-                    default: break;
-                } // switch
+                if(State == stateActive) BtnHandlerActive(Msg.BtnEvtInfo);
+                else if(State == statePreOff) BtnHandlerPreOff(Msg.BtnEvtInfo);
                 break;
 #endif
+
+            case evtIdLedSeqEnd:
+                if(State == stateFadeIn) State = stateActive;
+                else if(State == stateFadeOut) {
+                    TmrOff.StartOrRestart();
+                    State = statePreOff;
+                }
+                break;
+
+            case evtIdTmrOff:
+                SaveColor();
+                EnterOff();
+                break;
 
 #if UART_RX_ENABLED
             case evtIdShellCmd:
@@ -189,6 +154,87 @@ void ITask() {
         } // Switch
     } // while true
 } // ITask()
+
+static void BtnHandlerActive(BtnEvtInfo_t BtnEvtInfo) {
+    switch(BtnEvtInfo.Type) {
+        case beShortPress:
+            if(BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                Printf("Tx On\r");
+                Radio.MustTx = true;
+            }
+            // No break is intentional
+        case beRepeat:
+            if(BtnEvtInfo.BtnID[0] == BTN_UP_INDX) {
+                Printf("Up\r");
+                ClrHSV.H++;
+                if(ClrHSV.H > CLR_HSV_H_MAX) ClrHSV.H = 0;
+                ClrRGB = ClrHSV.ToRGB();
+                lsqFadeIn[0].Color = ClrRGB;
+                Led.StartOrRestart(lsqFadeIn);
+            }
+            else if(BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
+                Printf("Down\r");
+                if(ClrHSV.H == 0) ClrHSV.H = CLR_HSV_H_MAX;
+                else ClrHSV.H--;
+                ClrRGB = ClrHSV.ToRGB();
+                lsqFadeIn[0].Color = ClrRGB;
+                Led.StartOrRestart(lsqFadeIn);
+            }
+            break;
+        case beRelease:
+            if(BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                Printf("Tx Off\r");
+                Radio.MustTx = false;
+            }
+            break;
+        case beCombo:
+            if((BtnEvtInfo.BtnID[0] == BTN_UP_INDX and BtnEvtInfo.BtnID[1] == BTN_DOWN_INDX) or
+               (BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX and BtnEvtInfo.BtnID[1] == BTN_UP_INDX)) {
+                Printf("Combo\r");
+                State = stateFadeOut;
+                Led.StartOrRestart(lsqFadeOut);
+            }
+            break;
+        default: break;
+    } // switch
+}
+
+static void BtnHandlerPreOff(BtnEvtInfo_t BtnEvtInfo) {
+    switch(BtnEvtInfo.Type) {
+        case beShortPress:
+            if(BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                Printf("FadeTx On\r");
+                TmrOff.StartOrRestart();
+                Led.StartOrRestart(lsqFadeInBlue);
+                Radio.MustTx = true;
+            }
+            else if(BtnEvtInfo.BtnID[0] == BTN_UP_INDX or BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
+                Printf("Fade UpDown\r");
+                TmrOff.Stop();
+                lsqFadeIn[0].Color = ClrRGB;
+                Led.StartOrRestart(lsqFadeIn);
+                State = stateActive;
+            }
+            break;
+        case beRelease:
+            if(BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
+                Printf("FadeTx Off\r");
+                TmrOff.StartOrRestart();
+                Led.StartOrRestart(lsqFadeOut);
+                Radio.MustTx = false;
+            }
+            break;
+        default: break;
+    } // switch
+}
+
+void SaveColor() {
+    Printf("SaveColor\r");
+}
+
+void EnterOff() {
+    Printf("EnterOff\r");
+}
 
 
 #if UART_RX_ENABLED // ================= Command processing ====================

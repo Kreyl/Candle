@@ -16,7 +16,9 @@ enum EvtMsgId_t {
     evtIdAdcRslt,
 
     // Not eternal
+    evtIdLedSeqEnd,
     evtIdButtons,
     evtIdRadioCmd,
     evtIdCheckRxTable,
+    evtIdTmrOff,
 };
