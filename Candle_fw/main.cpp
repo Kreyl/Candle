@@ -210,6 +210,7 @@ static void BtnHandlerPreOff(BtnEvtInfo_t BtnEvtInfo) {
                 Printf("FadeTx On\r");
                 TmrOff.StartOrRestart();
                 Led.StartOrRestart(lsqFadeInBlue);
+                ClrRGB = clBlack;
                 Radio.MustTx = true;
             }
             else if(BtnEvtInfo.BtnID[0] == BTN_UP_INDX or BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {

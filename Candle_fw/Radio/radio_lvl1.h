@@ -76,6 +76,7 @@ union rPkt_t  {
 
 #if 1 // ======================= Channels & cycles =============================
 #define RCHNL_SRV       0
+#define RCHNL           7
 #define ID2RCHNL(ID)    (RCHNL_MIN + ID)
 #endif
 

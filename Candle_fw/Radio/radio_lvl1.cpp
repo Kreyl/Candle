@@ -74,8 +74,8 @@ uint8_t rLevel1_t::Init() {
 
     if(CC.Init() == retvOk) {
         CC.SetTxPower(CC_TX_PWR);
-        CC.SetPktSize(RPKT_LEN+1);
-//        CC.SetChannel(Settings.RChnl);
+        CC.SetPktSize(RPKT_LEN);
+        CC.SetChannel(RCHNL);
 //        CC.Recalibrate();
         // Thread
         chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
