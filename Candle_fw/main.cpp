@@ -14,7 +14,6 @@
 //#include "kl_adc.h"
 #include "MsgQ.h"
 #include "main.h"
-#include "ColorTable.h"
 
 #if 1 // ======================== Variables and defines ========================
 // Forever
@@ -26,15 +25,31 @@ static void OnCmd(Shell_t *PShell);
 // EEAddresses
 #define EE_ADDR_DEVICE_ID       0
 int32_t ID;
-
 static uint8_t ISetID(int32_t NewID);
 void ReadIDfromEE();
 
 LedRGBwPower_t Led { LED_R_PIN, LED_G_PIN, LED_B_PIN, LED_EN_PIN };
-LedRGBChunk_t lsqSetColor[] = {
-        {csSetup, 90, clRed},
+ColorHSV_t ClrHSV{0, 100, 100};
+Color_t ClrRGB;
+
+LedRGBChunk_t lsqFadeOthers[] = {
+        {csSetup, 0, clBlack},
+        {csSetup, 360, clDarkBlue},
         {csEnd},
 };
+
+LedRGBChunk_t lsqFadeSelf[] = {
+        {csSetup, 0, clBlack},
+        {csSetup, 360, clBlack},
+        {csEnd},
+};
+
+LedRGBChunk_t lsqFadeIn[] = {
+        {csSetup, 0, clBlack},
+        {csSetup, 360, clBlack},
+        {csEnd},
+};
+static bool WasOff = false;
 
 // ==== Timers ====
 static TmrKL_t TmrEverySecond {MS2ST(1000), evtIdEverySecond, tktPeriodic};
@@ -67,7 +82,6 @@ int main(void) {
 //    RandomSeed(GetUniqID3());   // Init random algorythm with uniq ID
 
     Led.Init();
-    lsqSetColor[0].Color = *ColorTable.GetCurrent();
 #if BUTTONS_ENABLED
     SimpleSensors::Init();
 #endif
@@ -80,9 +94,12 @@ int main(void) {
     // ==== Radio ====
     if(Radio.Init() == retvOk) Led.StartOrRestart(lsqStart);
     else Led.StartOrRestart(lsqFailure);
-    chThdSleepMilliseconds(2700);
+    chThdSleepMilliseconds(1800);
     // Show current color
-    Led.StartOrRestart(lsqSetColor);
+    Led.Stop();
+    ClrRGB = ClrHSV.ToRGB();
+    lsqFadeIn[1].Color = ClrRGB;
+    Led.StartOrRestart(lsqFadeIn);
 
     // Main cycle
     ITask();
@@ -104,19 +121,48 @@ void ITask() {
                     case beShortPress:
                         if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
                             Printf("Tx On\r");
+                            Radio.MustTx = true;
+                            if(ClrRGB == clBlack) Led.StartOrRestart(lsqFadeOthers);
                         }
                         // No break is intentional
                     case beRepeat:
                         if(Msg.BtnEvtInfo.BtnID[0] == BTN_UP_INDX) {
                             Printf("Up\r");
+                            if(ClrRGB == clBlack) {
+                                ClrRGB = ClrHSV.ToRGB();
+                                lsqFadeIn[1].Color = ClrRGB;
+                                Led.StartOrRestart(lsqFadeIn);
+                            }
+                            else {
+                                ClrHSV.H++;
+                                if(ClrHSV.H > CLR_HSV_H_MAX) ClrHSV.H = 0;
+                                ClrRGB = ClrHSV.ToRGB();
+                                Led.Stop();
+                                Led.SetColor(ClrRGB);
+                            }
                         }
                         else if(Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
                             Printf("Down\r");
+                            if(ClrRGB == clBlack) {
+                                ClrRGB = ClrHSV.ToRGB();
+                                lsqFadeIn[1].Color = ClrRGB;
+                                Led.StartOrRestart(lsqFadeIn);
+                            }
+                            else {
+                                if(ClrHSV.H == 0) ClrHSV.H = CLR_HSV_H_MAX;
+                                else ClrHSV.H--;
+                                ClrRGB = ClrHSV.ToRGB();
+                                Led.Stop();
+                                Led.SetColor(ClrRGB);
+                            }
                         }
                         break;
                     case beRelease:
                         if(Msg.BtnEvtInfo.BtnID[0] == BTN_TX_INDX) {
                             Printf("Tx Off\r");
+                            Radio.MustTx = false;
+                            lsqFadeSelf[0].Color = clDarkBlue;
+                            Led.StartOrRestart(lsqFadeSelf);
                         }
                         break;
                     case beCombo:
@@ -124,6 +170,9 @@ void ITask() {
                            (Msg.BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX and Msg.BtnEvtInfo.BtnID[1] == BTN_UP_INDX)) {
                             Printf("Combo\r");
                         }
+                        lsqFadeSelf[0].Color = ClrRGB;
+                        ClrRGB = clBlack;
+                        Led.StartOrRestart(lsqFadeSelf);
                         break;
                     default: break;
                 } // switch

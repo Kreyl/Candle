@@ -13,6 +13,7 @@
 #include "kl_buf.h"
 #include "shell.h"
 #include "MsgQ.h"
+#include "color.h"
 
 #if 0 // ========================= Signal levels ===============================
 // Python translation for db
@@ -55,33 +56,21 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #endif
 
-#define CC_TX_PWR   CC_PwrPlus5dBm
+#define CC_TX_PWR   CC_Pwr0dBm
 
 #if 1 // =========================== Pkt_t =====================================
 union rPkt_t  {
-    uint32_t DWord[2];
-    struct {
-        uint8_t Length;
-        int8_t Ch[4];
-        uint8_t R1, R2;
-        uint8_t Btns;
-    } __packed;
+    uint32_t DWord;
+    Color_t Clr{0,0,0};
     rPkt_t& operator = (const rPkt_t &Right) {
-        DWord[0] = Right.DWord[0];
-        DWord[1] = Right.DWord[1];
+        DWord = Right.DWord;
         return *this;
     }
-    void Print() { Printf("%d %d %d %d %d %d; %X\r", Ch[0],Ch[1],Ch[2],Ch[3],R1, R2, Btns); }
+//    void Print() { Printf("%d %d %d %d %d %d; %X\r", Ch[0],Ch[1],Ch[2],Ch[3],R1, R2, Btns); }
 } __packed;
 
-#define RPKT_LEN    7   // 7 bytes of payload
+#define RPKT_LEN    sizeof(rPkt_t)
 
-struct rPktReply_t {
-    uint8_t Length;
-    uint8_t Reply;
-} __packed;
-
-#define REPLY_PKT_LEN   1
 
 #endif
 
@@ -134,8 +123,9 @@ private:
     }
 public:
     int8_t Rssi;
-    EvtMsgQ_t<RMsg_t, RMSG_Q_LEN> RMsgQ;
-    rPktReply_t rPktReply;
+    rPkt_t Pkt;
+    bool MustTx = false;
+//    EvtMsgQ_t<RMsg_t, RMSG_Q_LEN> RMsgQ;
     uint8_t Init();
     void SetChannel(uint8_t NewChannel);
     // Inner use

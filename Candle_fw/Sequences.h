@@ -213,16 +213,6 @@ const LedRGBChunk_t lsqFailure[] = {
         {csEnd}
 };
 
-const LedRGBChunk_t lsqTheyAreNear[] = {
-        {csSetup, 720, clBlue},
-        {csEnd},
-};
-
-const LedRGBChunk_t lsqTheyDissapeared[] = {
-        {csSetup, 720, clBlack},
-        {csEnd},
-};
-
 #endif
 
 #if 0 // =========================== LED Smooth ================================

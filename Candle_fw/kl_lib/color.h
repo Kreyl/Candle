@@ -199,6 +199,10 @@ struct ColorHSL_t {
 #endif
 
 #if 1 // ============================== HSV ====================================
+#define CLR_HSV_H_MAX   360
+#define CLR_HSV_S_MAX   100
+#define CLR_HSV_V_MAX   100
+
 struct ColorHSV_t {
     union {
         uint32_t DWord32;
@@ -258,7 +262,7 @@ struct ColorHSV_t {
 #define clLightGrey ((Color_t){180, 180, 180})
 #define clDarkGrey  ((Color_t){54, 54, 54})
 
-#define CL_DARK_V       27
+#define CL_DARK_V       7
 #define clDarkRed       ((Color_t){CL_DARK_V, 0,         0})
 #define clDarkGreen     ((Color_t){0,         CL_DARK_V, 0})
 #define clDarkBlue      ((Color_t){0,         0,         CL_DARK_V})

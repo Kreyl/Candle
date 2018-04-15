@@ -30,6 +30,7 @@ cc1101_t CC(CC_Setup0);
 #endif
 
 rLevel1_t Radio;
+extern Color_t ClrRGB;
 
 #if 1 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
@@ -41,38 +42,22 @@ static void rLvl1Thread(void *arg) {
 
 __noreturn
 void rLevel1_t::ITask() {
+    bool IsSleeping = false;
     while(true) {
-        RMsg_t Msg = RMsgQ.Fetch(TIME_INFINITE);
-        switch(Msg.ID) {
-            case RMSGID_PKT:
-//                Msg.Pkt.Print();
-                for(int i=0; i<RETRY_CNT; i++) {
-                    // Transmit
-                    Msg.Pkt.Length = 7;
-                    CC.Recalibrate();
-                    CC.Transmit(&Msg.Pkt, Msg.Pkt.Length+1); // Length byte + payload
-                    // Receive
-                    uint8_t RxRslt = CC.Receive(RX_T_MS, &rPktReply, 2, &Rssi);
-                    if(RxRslt == retvOk) {
-//                        EvtMsg_t OutMsg(evtIdRadioRx, Rssi);
-//                        EvtQMain.SendNowOrExit(OutMsg);
-                        break; // Get out of retries
-                    }
-                }
-                break;
-
-            case RMSGID_CHNL:
-                CC.SetChannel(Msg.Value);
-                break;
-
-            default: break;
-        } // switch
-//
-//
-//            Printf("Par %u; Rssi=%d\r", PktRx.CmdID, Rssi);
-            // Transmit reply, it formed inside OnRadioRx
-//            if(OnRadioRx() == retvOk) CC.Transmit(&PktTx);
-//        } // if RxRslt ok
+        if(MustTx) {
+            IsSleeping = false;
+            CC.Recalibrate();
+            Pkt.Clr = ClrRGB;
+            CC.Transmit(&Pkt, RPKT_LEN);
+        }
+        else {
+            if(!IsSleeping) {
+                IsSleeping = true;
+                CC.EnterPwrDown();
+                Printf("CC Sleep\r");
+            }
+        }
+        chThdSleepMilliseconds(27);
     } // while
 }
 #endif // task
@@ -84,13 +69,13 @@ uint8_t rLevel1_t::Init() {
 //    PinSetupOut(DBG_GPIO2, DBG_PIN2, omPushPull);
 #endif    // Init radioIC
 
-    RMsgQ.Init();
+//    RMsgQ.Init();
 
     if(CC.Init() == retvOk) {
         CC.SetTxPower(CC_TX_PWR);
         CC.SetPktSize(RPKT_LEN+1);
 //        CC.SetChannel(Settings.RChnl);
-        CC.Recalibrate();
+//        CC.Recalibrate();
         // Thread
         chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
         return retvOk;
