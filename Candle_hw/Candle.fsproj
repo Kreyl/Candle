@@ -1,23 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Project xsi:noNamespaceSchemaLocation="Project.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<Version current="1"/>
-	<Format>Project</Format>
-	<Header>
-		<Program name="TopoR" version="6.2"/>
-		<GUID>{BEBEFB34-31A2-4389-8F17-ED1918DA9146}</GUID>
-		<Annotation>Project file</Annotation>
-	</Header>
-	<Document>
-		<LocalLibrary />
-		<Pcb>
-			<File path=".\Candle.fsx" isopened="0"/>
-		</Pcb>
-		<Import>
-			<Specctra>
-			<Path name="D:\Nute\Calmari\Candle\Candle_hw\Candle.dsn"/>
-			</Specctra>
-		</Import>
-		<ARouteSessions>
-		</ARouteSessions>
-	</Document>
+<?xml version="1.0" encoding="UTF-8"?>
+<!--****************************************-->
+<!--   File    : Candle.fsproj              -->
+<!--   Format  : TopoR Project file         -->
+<!--   Version : 2                          -->
+<!--   Program : TopoR Lite 7.0.18427       -->
+<!--   Date    : Saturday, October 13, 2018 -->
+<!--   Time    : 12:36                      -->
+<!--****************************************-->
+
+<Project>
+   <Version current="2"/>
+   <GUID>{3EE44D79-13A8-408F-864F-749296D64229}</GUID>
+   <Documents>
+      <Section name="PCB" isExpanded="true">
+         <File path=".\Candle.fsx" isopened="1" dateChange="2018-10-13 11:40:43"/>
+      </Section>
+      <Section name="AutoRouting" isExpanded="false"/>
+   </Documents>
 </Project>
