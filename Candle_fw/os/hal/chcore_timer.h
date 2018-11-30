@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,11 +25,11 @@
  * @{
  */
 
-#ifndef CHCORE_TIMER_H
-#define CHCORE_TIMER_H
+#ifndef _CHCORE_TIMER_H_
+#define _CHCORE_TIMER_H_
 
 /* This is the only header in the HAL designed to be include-able alone.*/
-#include "hal_st.h"
+#include "st.h"
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -119,6 +119,6 @@ static inline systime_t port_timer_get_alarm(void) {
   return stGetAlarm();
 }
 
-#endif /* CHCORE_TIMER_H */
+#endif /* _CHCORE_TIMER_H_ */
 
 /** @} */

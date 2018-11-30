@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef VECTORS_H
-#define VECTORS_H
+#ifndef _VECTORS_H_
+#define _VECTORS_H_
 
 #include "cmparams.h"
 
@@ -107,6 +107,6 @@ extern "C" {
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* VECTORS_H */
+#endif /* _VECTORS_H_ */
 
 /** @} */

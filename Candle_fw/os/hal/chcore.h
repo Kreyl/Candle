@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHCORE_H
-#define CHCORE_H
+#ifndef _CHCORE_H_
+#define _CHCORE_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -134,8 +134,8 @@ struct port_intctx {};
  *          @p port_intctx structure representing the stack pointer
  *          at context switch time.
  */
-struct port_context {
-  struct port_intctx *sp;
+struct context {
+  struct port_intctx *r13;
 };
 
 #endif /* !defined(_FROM_ASM_) */
@@ -192,7 +192,6 @@ struct port_context {
 #if (CORTEX_MODEL == 0) || (CORTEX_MODEL == 1)
 #include "chcore_v6m.h"
 #elif (CORTEX_MODEL == 3) || (CORTEX_MODEL == 4) || (CORTEX_MODEL == 7)
-#include "mpu.h"
 #include "chcore_v7m.h"
 #else
 #error "unknown Cortex-M variant"
@@ -210,6 +209,6 @@ struct port_context {
 
 #endif /* !defined(_FROM_ASM_) */
 
-#endif /* CHCORE_H */
+#endif /* _CHCORE_H_ */
 
 /** @} */

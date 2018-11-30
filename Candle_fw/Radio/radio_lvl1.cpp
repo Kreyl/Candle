@@ -11,7 +11,7 @@
 #include "led.h"
 #include "Sequences.h"
 
-cc1101_t CC(CC_Setup0);
+cc1101_t CC(CC_Setup0, CCIrqHandler);
 
 //#define DBG_PINS
 

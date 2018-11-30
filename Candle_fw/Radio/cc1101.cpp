@@ -10,6 +10,10 @@
 
 #define CC_MAX_BAUDRATE_HZ  6500000
 
+extern cc1101_t CC;
+
+void CCIrqHandler() { CC.IIrqHandler(); }
+
 uint8_t cc1101_t::Init() {
     // ==== GPIO ====
 #if defined STM32L1XX || defined STM32F4XX || defined STM32L4XX

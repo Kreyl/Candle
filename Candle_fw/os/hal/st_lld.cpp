@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 */
 
 /**
- * @file    TIMv1/hal_st_lld.c
+ * @file    STM32/st_lld.c
  * @brief   ST Driver subsystem low level driver code.
  *
  * @addtogroup ST
@@ -75,7 +75,7 @@
 
 #define ST_HANDLER                          STM32_TIM3_HANDLER
 #define ST_NUMBER                           STM32_TIM3_NUMBER
-#define ST_CLOCK_SRC                        STM32_TIMCLK1
+//#define ST_CLOCK_SRC                        STM32_TIMCLK1 // @KL
 #define ST_ENABLE_CLOCK()                   rccEnableTIM3(FALSE)
 #if defined(STM32F1XX)
 #define ST_ENABLE_STOP()                    DBGMCU->CR |= DBGMCU_CR_DBG_TIM3_STOP
@@ -153,6 +153,7 @@
 #else
 #define ST_ENABLE_STOP()                    DBGMCU->APB1FZ |= DBGMCU_APB1_FZ_DBG_TIM14_STOP
 #endif
+
 
 #elif STM32_ST_USE_TIMER == 21
 #if (OSAL_ST_RESOLUTION == 32) && !STM32_TIM21_IS_32BITS
@@ -255,12 +256,12 @@ OSAL_IRQ_HANDLER(SysTick_Handler) {
 
 #if (OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING) || defined(__DOXYGEN__)
 /**
- * @brief   TIM2 interrupt handler.
+ * @brief   TIMx interrupt handler.
  * @details This interrupt is used for system tick in free running mode.
  *
  * @isr
  */
-extern "C"
+extern "C" {
 OSAL_IRQ_HANDLER(ST_HANDLER) {
 
   OSAL_IRQ_PROLOGUE();
@@ -277,6 +278,7 @@ OSAL_IRQ_HANDLER(ST_HANDLER) {
   }
 
   OSAL_IRQ_EPILOGUE();
+}
 }
 #endif /* OSAL_ST_MODE == OSAL_ST_MODE_FREERUNNING */
 

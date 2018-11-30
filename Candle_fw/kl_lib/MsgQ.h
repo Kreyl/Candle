@@ -57,14 +57,15 @@ union EvtMsg_t {
                 int32_t Value;
                 uint8_t ValueID;
             } __attribute__((__packed__));
-            uint8_t b[EMSG_DATA8_CNT];
-            uint16_t w16[EMSG_DATA16_CNT];
+//            uint8_t b[EMSG_DATA8_CNT];
+//            uint16_t w16[EMSG_DATA16_CNT];
 #if BUTTONS_ENABLED
             BtnEvtInfo_t BtnEvtInfo;
 #endif
         } __attribute__((__packed__));
         uint8_t ID;
     } __attribute__((__packed__));
+
     EvtMsg_t& operator = (const EvtMsg_t &Right) {
         DWord[0] = Right.DWord[0];
         DWord[1] = Right.DWord[1];
@@ -123,6 +124,7 @@ public:
     uint8_t SendNowOrExit(const T &Msg) {
         chSysLock();
         uint8_t Rslt = SendNowOrExitI(Msg);
+        chSchRescheduleS();
         chSysUnlock();
         return Rslt;
     }
@@ -130,7 +132,7 @@ public:
     /* Posts a message into a mailbox.
      * The invoking thread waits until a empty slot in the mailbox becomes available
      * or the specified time runs out. */
-    uint8_t SendWaitingAbility(T &Msg, systime_t timeout) {
+    uint8_t SendWaitingAbility(const T &Msg, systime_t timeout) {
         chSysLock();
         msg_t rdymsg = chSemWaitTimeoutS(&EmptySem, timeout);
         if(rdymsg == MSG_OK) {

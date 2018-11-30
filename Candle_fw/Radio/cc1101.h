@@ -14,6 +14,8 @@
 
 #define CC_BUSYWAIT_TIMEOUT     99000   // tics, not ms
 
+void CCIrqHandler();
+
 class cc1101_t : public IrqHandler_t {
 private:
     const Spi_t ISpi;
@@ -67,9 +69,9 @@ public:
     void IIrqHandler() { chThdResumeI(&ThdRef, MSG_OK); }   // NotNull check perfprmed inside chThdResumeI
     cc1101_t(
             SPI_TypeDef *ASpi, GPIO_TypeDef *APGpio,
-            uint16_t ASck, uint16_t AMiso, uint16_t AMosi, uint16_t ACs, uint16_t AGdo0):
+            uint16_t ASck, uint16_t AMiso, uint16_t AMosi, uint16_t ACs, uint16_t AGdo0, ftVoidVoid AIrqHandler):
         ISpi(ASpi), PGpio(APGpio),
         Sck(ASck), Miso(AMiso), Mosi(AMosi), Cs(ACs),
-        IGdo0(APGpio, AGdo0, pudNone, this),
+        IGdo0(APGpio, AGdo0, pudNone, AIrqHandler),
         IState(0), ThdRef(nullptr) {}
 };

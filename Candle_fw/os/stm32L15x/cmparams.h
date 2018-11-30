@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CMPARAMS_H
-#define CMPARAMS_H
+#ifndef _CMPARAMS_H_
+#define _CMPARAMS_H_
 
 /**
  * @brief   Cortex core model.
@@ -76,8 +76,6 @@
    assembler source files. We verify that the info matches instead.*/
 #include "stm32l1xx.h"
 
-/*lint -save -e9029 [10.4] Signedness comes from external files, it is
-  unpredictable but gives no problems.*/
 #if CORTEX_MODEL != __CORTEX_M
 #error "CMSIS __CORTEX_M mismatch"
 #endif
@@ -85,13 +83,12 @@
 #if CORTEX_PRIORITY_BITS != __NVIC_PRIO_BITS
 #error "CMSIS __NVIC_PRIO_BITS mismatch"
 #endif
-/*lint -restore*/
 
 /* Fix for yet another consistency error in ST headers.*/
 #define SVCall_IRQn SVC_IRQn
 
 #endif /* !defined(_FROM_ASM_) */
 
-#endif /* CMPARAMS_H */
+#endif /* _CMPARAMS_H_ */
 
 /** @} */

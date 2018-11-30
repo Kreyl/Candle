@@ -1,10 +1,3 @@
-/*
- * main.cpp
- *
- *  Created on: 20 февр. 2014 г.
- *      Author: g.kruglov
- */
-
 #include "SimpleSensors.h"
 #include "buttons.h"
 #include "board.h"
@@ -18,7 +11,8 @@
 #if 1 // ======================== Variables and defines ========================
 // Forever
 EvtMsgQ_t<EvtMsg_t, MAIN_EVT_Q_LEN> EvtQMain;
-extern CmdUart_t Uart;
+static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
+CmdUart_t Uart{&CmdUartParams};
 static void ITask();
 static void OnCmd(Shell_t *PShell);
 
@@ -78,9 +72,9 @@ int main(void) {
     EvtQMain.Init();
 
     // ==== Init hardware ====
-    Uart.Init(115200);
+    Uart.Init();
     ReadIDfromEE();
-    Printf("\r%S %S; ID=%u\r", APP_NAME, BUILD_TIME, ID);
+    Printf("\r%S %S; ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
 //    Uart.Printf("ID: %X %X %X\r", GetUniqID1(), GetUniqID2(), GetUniqID3());
 //    if(Sleep::WasInStandby()) {
 //        Uart.Printf("WasStandby\r");
@@ -123,6 +117,11 @@ void ITask() {
     while(true) {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
+            case evtIdShellCmd:
+                OnCmd((Shell_t*)Msg.Ptr);
+                ((Shell_t*)Msg.Ptr)->SignalCmdProcessed();
+                break;
+
             case evtIdEverySecond:
 //                TimeS++;
                 break;
@@ -267,7 +266,7 @@ void EnterOff() {
 }
 
 
-#if UART_RX_ENABLED // ================= Command processing ====================
+#if 1 // ================= Command processing ====================
 void OnCmd(Shell_t *PShell) {
     Cmd_t *PCmd = &PShell->Cmd;
     __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
@@ -276,7 +275,7 @@ void OnCmd(Shell_t *PShell) {
     if(PCmd->NameIs("Ping")) {
         PShell->Ack(retvOk);
     }
-    else if(PCmd->NameIs("Version")) PShell->Printf("%S %S\r", APP_NAME, BUILD_TIME);
+    else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
     else if(PCmd->NameIs("GetID")) PShell->Reply("ID", ID);
 

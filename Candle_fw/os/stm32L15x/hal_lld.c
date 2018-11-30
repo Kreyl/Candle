@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@
  * @{
  */
 
-/* TODO: LSEBYP like in F3.*/
-
 #include "hal.h"
 
 
@@ -41,6 +39,10 @@ void hal_lld_init(void) {
 
   /* PWR clock enabled.*/
   rccEnablePWRInterface(FALSE);
+
+  /* SYSCFG clock enabled here because it is a multi-functional unit shared
+     among multiple drivers.*/
+  rccEnableAPB2(RCC_APB2ENR_SYSCFGEN, TRUE);
 
 #if defined(STM32_DMA_REQUIRED)
   dmaInit();

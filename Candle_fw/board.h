@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 // ==== General ====
-#define BOARD_NAME          "Candle04"
+#define BOARD_NAME          "Candle05"
 #define APP_NAME            "Candle_TxColor"
 
 // ==== High-level peripery control ====
@@ -30,9 +30,8 @@
 // PortMinTim_t: GPIO, Pin, Tim, TimChnl, invInverted, omPushPull, TopValue
 // UART
 #define UART_GPIO       GPIOA
-#define UART_TX_PIN     9
-#define UART_RX_PIN     10
-#define UART_AF         AF7 // for USART1 @ GPIOA
+#define UART_TX_PIN     2
+#define UART_RX_PIN     3
 
 // LED
 #define LED_EN_PIN      { GPIOB, 2, omPushPull }
@@ -50,14 +49,9 @@
 #define BTN_DOWN_INDX   2
 
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
-#define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 3
+#define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 1
 
 #endif // GPIO
-
-#if 1 // ========================== USART ======================================
-#define CMD_UART        USART1
-#define UART_TXBUF_SZ   256
-#endif
 
 #if ADC_REQUIRED // ======================= Inner ADC ==========================
 // Clock divider: clock is generated from the APB2
@@ -79,9 +73,11 @@
 #if 1 // =========================== DMA =======================================
 #define STM32_DMA_REQUIRED  TRUE
 // ==== Uart ====
-#define UART_DMA_TX     STM32_DMA1_STREAM4
-#define UART_DMA_RX     STM32_DMA1_STREAM5
-#define UART_DMA_CHNL   0   // Dummy
+#define UART_DMA_TX_MODE(Chnl) (STM32_DMA_CR_CHSEL(Chnl) | DMA_PRIORITY_LOW | STM32_DMA_CR_MSIZE_BYTE | STM32_DMA_CR_PSIZE_BYTE | STM32_DMA_CR_MINC | STM32_DMA_CR_DIR_M2P | STM32_DMA_CR_TCIE)
+#define UART_DMA_RX_MODE(Chnl) (STM32_DMA_CR_CHSEL(Chnl) | DMA_PRIORITY_MEDIUM | STM32_DMA_CR_MSIZE_BYTE | STM32_DMA_CR_PSIZE_BYTE | STM32_DMA_CR_MINC | STM32_DMA_CR_DIR_P2M | STM32_DMA_CR_CIRC)
+#define UART_DMA_TX     STM32_DMA1_STREAM7
+#define UART_DMA_RX     STM32_DMA1_STREAM6
+#define UART_DMA_CHNL   2
 
 #if I2C1_ENABLED // ==== I2C ====
 #define I2C1_DMA_TX     STM32_DMA1_STREAM6
@@ -100,3 +96,20 @@
 #endif // ADC
 
 #endif // DMA
+
+#if 1 // ========================== USART ======================================
+#define PRINTF_FLOAT_EN FALSE
+#define UART_TXBUF_SZ   1024
+#define UART_RXBUF_SZ   99
+
+#define UARTS_CNT       1
+
+#define CMD_UART_PARAMS \
+    USART2, UART_GPIO, UART_TX_PIN, UART_GPIO, UART_RX_PIN, \
+    UART_DMA_TX, UART_DMA_RX, UART_DMA_TX_MODE(UART_DMA_CHNL), UART_DMA_RX_MODE(UART_DMA_CHNL)
+
+#define ESP_BOOT_UART   USART2
+#define ESP_CMD_UART    USART3
+
+#endif
+
