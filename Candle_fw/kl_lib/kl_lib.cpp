@@ -482,10 +482,11 @@ static uint8_t WaitForLastOperation(systime_t Timeout_st) {
 }
 #else
 static uint8_t GetStatus(void) {
-    if(FLASH->SR & FLASH_SR_BSY) return retvBusy;
+    uint32_t SR = FLASH->SR;
+    if(SR & FLASH_SR_BSY) return retvBusy;
 #if defined STM32L1XX
-    else if(FLASH->SR & FLASH_SR_WRPERR) return retvWriteProtect;
-    else if(FLASH->SR & (uint32_t)0x1E00) return retvFail;
+    else if(SR & FLASH_SR_WRPERR) return retvWriteProtect;
+    else if(SR & 0x1E00) return retvFail;
 #elif defined STM32F2XX
 
 #else
@@ -501,7 +502,7 @@ static uint8_t WaitForLastOperation(systime_t Timeout_st) {
     do {
         status = GetStatus();
         Timeout_st--;
-    } while((status == retvBusy) and (Timeout_st != 0x00));
+    } while((status == retvBusy) and (Timeout_st != 0));
     if(Timeout_st == 0x00) status = retvTimeout;
     return status;
 }
@@ -862,6 +863,7 @@ uint32_t Read32(uint32_t Addr) {
 uint8_t Write32(uint32_t Addr, uint32_t W) {
     Addr += EEPROM_BASE_ADDR;
 //    Uart.Printf("EAdr=%u\r", Addr);
+    chSysLock();
     Flash::UnlockEEAndPECR();
     // Wait for last operation to be completed
     uint8_t status = Flash::WaitForLastOperation(FLASH_ProgramTimeout);
@@ -870,6 +872,7 @@ uint8_t Write32(uint32_t Addr, uint32_t W) {
         status = Flash::WaitForLastOperation(FLASH_ProgramTimeout);
     }
     Flash::LockEEAndPECR();
+    chSysUnlock();
     return status;
 }
 

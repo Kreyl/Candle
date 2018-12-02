@@ -75,7 +75,6 @@ int main(void) {
     Uart.Init();
     ReadIDfromEE();
     Printf("\r%S %S; ID=%u\r", APP_NAME, XSTRINGIFY(BUILD_TIME), ID);
-//    Uart.Printf("ID: %X %X %X\r", GetUniqID1(), GetUniqID2(), GetUniqID3());
 //    if(Sleep::WasInStandby()) {
 //        Uart.Printf("WasStandby\r");
 //        Sleep::ClearStandbyFlag();
@@ -168,7 +167,7 @@ static void BtnHandlerActive(BtnEvtInfo_t BtnEvtInfo) {
             // No break is intentional
         case beRepeat:
             if(BtnEvtInfo.BtnID[0] == BTN_UP_INDX) {
-                Printf("Up\r");
+//                Printf("Up\r");
                 ClrHSV.H++;
                 if(ClrHSV.H > CLR_HSV_H_MAX) ClrHSV.H = 0;
                 ClrRGB = ClrHSV.ToRGB();
@@ -176,7 +175,7 @@ static void BtnHandlerActive(BtnEvtInfo_t BtnEvtInfo) {
                 Led.StartOrRestart(lsqFadeIn);
             }
             else if(BtnEvtInfo.BtnID[0] == BTN_DOWN_INDX) {
-                Printf("Down\r");
+//                Printf("Down\r");
                 if(ClrHSV.H == 0) ClrHSV.H = CLR_HSV_H_MAX;
                 else ClrHSV.H--;
                 ClrRGB = ClrHSV.ToRGB();
