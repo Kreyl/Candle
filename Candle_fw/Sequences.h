@@ -188,7 +188,7 @@ const LedChunk_t lsqBlinkGreenX2[] = {
 };
 #endif
 
-#if 1 // ============================ LED RGB ==================================
+#if 0 // ============================ LED RGB ==================================
 #define LOW_BRTNESS     4
 const LedRGBChunk_t lsqStart[] = {
         {csSetup, 36, clRed},
@@ -215,23 +215,27 @@ const LedRGBChunk_t lsqFailure[] = {
 
 #endif
 
-#if 0 // =========================== LED Smooth ================================
+#if 1 // =========================== LED Smooth ================================
 #define LED_TOP_BRIGHTNESS  255
 
-const LedSmoothChunk_t lsqFadeIn[] = {
-        {csSetup, 630, LED_TOP_BRIGHTNESS},
-        {csEnd}
-};
-const LedSmoothChunk_t lsqFadeOut[] = {
-        {csSetup, 630, 0},
-        {csEnd}
-};
-const LedSmoothChunk_t lsqEnterActive[] = {
+const LedSmoothChunk_t lsqFailure[] = {
         {csSetup, 0, LED_TOP_BRIGHTNESS},
+        {csWait, 99},
+        {csSetup, 0, LED_TOP_BRIGHTNESS},
+        {csWait, 99},
+        {csGoto, 0}
+};
+
+const LedSmoothChunk_t lsqIdle[] = {
+        {csSetup, 360, LED_TOP_BRIGHTNESS},
+        {csSetup, 360, 0},
         {csEnd}
 };
-const LedSmoothChunk_t lsqEnterIdle[] = {
-        {csSetup, 360, 0},
+
+const LedSmoothChunk_t lsqBlink[] = {
+        {csSetup, 0, LED_TOP_BRIGHTNESS},
+        {csWait, 27},
+        {csSetup, 0, 0},
         {csEnd}
 };
 

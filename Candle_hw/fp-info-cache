@@ -1,4 +1,11 @@
-545681290691432
+544048717043135
+Antennas
+2_5289781738657022522
+
+
+0
+0
+0
 Antennas
 ANT_868_10d4x36
 PCB 75.7x37.5, AntPcb 14.8mm
@@ -770,13 +777,6 @@ Single-line connector 4-pin
 4
 4
 Connectors
-PLS-4-Long
-Single-line connector 4-pin
-
-0
-4
-4
-Connectors
 PLS-4-PAD
 
 
@@ -869,6 +869,13 @@ CONN DEV
 1
 Connectors
 SLD_2_2D5
+Single-line connector 4-pin
+
+0
+2
+2
+Connectors
+SLD_2_2D5_1mm
 Single-line connector 4-pin
 
 0
@@ -1442,13 +1449,6 @@ LED_0603_DOUBLE
 4
 4
 LEDs
-LED_0805
-
-
-0
-2
-2
-LEDs
 LED_1206
 
 
@@ -1720,13 +1720,6 @@ Oval3x1.5
 
 0
 1
-1
-PCB
-Oval5x1.5wHole1mm
-
-
-0
-2
 1
 PCB
 Oval6x3

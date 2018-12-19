@@ -11,7 +11,7 @@
 
 // ==== General ====
 #define BOARD_NAME          "Candle05"
-#define APP_NAME            "Candle_TxColor"
+#define APP_NAME            "Candle_TxAcg"
 
 // ==== High-level peripery control ====
 #define BUTTONS_ENABLED         TRUE
@@ -48,6 +48,15 @@
 #define BTN_UP_INDX     1
 #define BTN_DOWN_INDX   2
 
+// Acc
+#define ACG_IRQ_PIN     GPIOC, 13
+#define ACG_CS_PIN      GPIOB, 12
+#define ACG_SCK_PIN     GPIOB, 13, omPushPull, pudNone, AF5
+#define ACG_MISO_PIN    GPIOB, 14, omPushPull, pudNone, AF5
+#define ACG_MOSI_PIN    GPIOB, 15, omPushPull, pudNone, AF5
+#define ACG_PWR_PIN     GPIOA, 9
+#define ACG_SPI         SPI2
+
 // Radio: SPI, PGpio, Sck, Miso, Mosi, Cs, Gdo0
 #define CC_Setup0       SPI1, GPIOA, 5,6,7, 4, 1
 
@@ -79,6 +88,11 @@
 #define UART_DMA_RX     STM32_DMA1_STREAM6
 #define UART_DMA_CHNL   2
 
+// ==== ACG ====
+#define ACG_DMA_TX      STM32_DMA1_STREAM5
+#define ACG_DMA_RX      STM32_DMA1_STREAM4
+#define ACG_DMA_CHNL    1
+
 #if I2C1_ENABLED // ==== I2C ====
 #define I2C1_DMA_TX     STM32_DMA1_STREAM6
 #define I2C1_DMA_RX     STM32_DMA1_STREAM7
@@ -107,9 +121,6 @@
 #define CMD_UART_PARAMS \
     USART2, UART_GPIO, UART_TX_PIN, UART_GPIO, UART_RX_PIN, \
     UART_DMA_TX, UART_DMA_RX, UART_DMA_TX_MODE(UART_DMA_CHNL), UART_DMA_RX_MODE(UART_DMA_CHNL)
-
-#define ESP_BOOT_UART   USART2
-#define ESP_CMD_UART    USART3
 
 #endif
 

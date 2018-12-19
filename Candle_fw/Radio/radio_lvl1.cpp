@@ -30,9 +30,9 @@ cc1101_t CC(CC_Setup0, CCIrqHandler);
 #endif
 
 rLevel1_t Radio;
-extern Color_t ClrRGB;
+extern LedSmooth_t Led;
 
-#if 1 // ================================ Task =================================
+#if 0 // ================================ Task =================================
 static THD_WORKING_AREA(warLvl1Thread, 256);
 __noreturn
 static void rLvl1Thread(void *arg) {
@@ -42,26 +42,29 @@ static void rLvl1Thread(void *arg) {
 
 __noreturn
 void rLevel1_t::ITask() {
-    bool IsSleeping = false;
     while(true) {
-        if(MustTx) {
-            IsSleeping = false;
-            CC.Recalibrate();
-            Pkt.Clr = ClrRGB;
-            CC.Transmit(&Pkt, RPKT_LEN);
-//            Printf("tx\r");
-        }
-        else {
-            if(!IsSleeping) {
-                IsSleeping = true;
-                CC.PowerOff();
-                Printf("CC Sleep\r");
-            }
-        }
+        CC.Recalibrate();
+        CC.Transmit(&Pkt, RPKT_LEN);
         chThdSleepMilliseconds(18);
     } // while
 }
 #endif // task
+
+void rLevel1_t::SendData(int16_t g0, int16_t g1, int16_t g2, int16_t a0, int16_t a1, int16_t a2) {
+    rPkt_t Pkt;
+    Pkt.gyro[0] = g0;
+    Pkt.gyro[1] = g1;
+    Pkt.gyro[2] = g2;
+    Pkt.acc[0] = a0;
+    Pkt.acc[1] = a1;
+    Pkt.acc[2] = a2;
+    Pkt.Btn = PinIsHi(GPIOA, 0);
+    Pkt.Time = chVTGetSystemTimeX();
+    CC.Recalibrate();
+    CC.Transmit(&Pkt, RPKT_LEN);
+    Led.StartOrRestart(lsqBlink);
+//    Printf("t");
+}
 
 #if 1 // ============================
 uint8_t rLevel1_t::Init() {
@@ -78,7 +81,7 @@ uint8_t rLevel1_t::Init() {
         CC.SetChannel(RCHNL);
 //        CC.Recalibrate();
         // Thread
-        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
+//        chThdCreateStatic(warLvl1Thread, sizeof(warLvl1Thread), NORMALPRIO, (tfunc_t)rLvl1Thread, NULL);
         return retvOk;
     }
     else return retvFail;

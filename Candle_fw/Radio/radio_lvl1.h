@@ -60,13 +60,16 @@ static inline void Lvl250ToLvl1000(uint16_t *PLvl) {
 
 #if 1 // =========================== Pkt_t =====================================
 union rPkt_t  {
-    uint32_t DWord;
-    Color_t Clr{0,0,0};
-    rPkt_t& operator = (const rPkt_t &Right) {
-        DWord = Right.DWord;
-        return *this;
-    }
-//    void Print() { Printf("%d %d %d %d %d %d; %X\r", Ch[0],Ch[1],Ch[2],Ch[3],R1, R2, Btns); }
+    struct {
+        uint16_t Time;
+        uint8_t Btn;
+        int16_t gyro[3], acc[3];
+    };
+    struct {
+        uint8_t R, G, B;
+        uint16_t BlinkOn, BlinkOff;
+        uint8_t VibroPwr;
+    };
 } __packed;
 
 #define RPKT_LEN    sizeof(rPkt_t)
@@ -125,10 +128,10 @@ private:
 public:
     int8_t Rssi;
     rPkt_t Pkt;
-    bool MustTx = false;
 //    EvtMsgQ_t<RMsg_t, RMSG_Q_LEN> RMsgQ;
     uint8_t Init();
     void SetChannel(uint8_t NewChannel);
+    void SendData(int16_t g0, int16_t g1, int16_t g2, int16_t a0, int16_t a1, int16_t a2);
     // Inner use
     void ITask();
 };
